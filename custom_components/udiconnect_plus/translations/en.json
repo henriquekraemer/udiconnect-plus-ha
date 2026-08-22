@@ -1,0 +1,75 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Udiconnect Plus account",
+        "description": "Sign in with the same e-mail and password you use in the Udiconnect Plus app.",
+        "data": {
+          "email": "E-mail",
+          "password": "Password"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Re-authenticate Udiconnect Plus",
+        "description": "The cloud rejected the stored password for {email}. Enter the current one.",
+        "data": {
+          "password": "Password"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Invalid e-mail or password",
+      "cannot_connect": "Could not reach the Udiconnect Plus cloud",
+      "unknown": "Unexpected error, check the logs"
+    },
+    "abort": {
+      "already_configured": "This account is already configured",
+      "reauth_successful": "Re-authentication was successful"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Udiconnect Plus options",
+        "data": {
+          "scan_interval": "Polling interval"
+        },
+        "data_description": {
+          "scan_interval": "How often to ask the cloud for the state of your devices, in seconds. After a command the integration polls faster on its own until the motor stops."
+        }
+      }
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "connectivity": {
+        "name": "Connectivity"
+      },
+      "low_battery": {
+        "name": "Low battery"
+      }
+    },
+    "update": {
+      "firmware": {
+        "name": "Firmware"
+      }
+    }
+  },
+  "exceptions": {
+    "invalid_auth": {
+      "message": "The Udiconnect Plus cloud rejected the credentials"
+    },
+    "cannot_connect": {
+      "message": "Could not reach the Udiconnect Plus cloud: {error}"
+    },
+    "unexpected_response": {
+      "message": "Unexpected response from the Udiconnect Plus cloud: {error}"
+    },
+    "set_position_failed": {
+      "message": "Could not move {name}: {error}"
+    },
+    "stop_failed": {
+      "message": "Could not stop {name}: {error}"
+    }
+  }
+}
