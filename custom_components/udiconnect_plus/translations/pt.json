@@ -1,0 +1,96 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Conta Udiconnect Plus",
+        "description": "Inicie sessão com o mesmo e-mail e palavra-passe que utiliza na aplicação Udiconnect Plus.",
+        "data": {
+          "email": "E-mail",
+          "password": "Palavra-passe"
+        },
+        "data_description": {
+          "email": "O e-mail da sua conta Udiconnect Plus.",
+          "password": "A palavra-passe da sua conta Udiconnect Plus."
+        }
+      },
+      "reauth_confirm": {
+        "title": "Reautenticar Udiconnect Plus",
+        "description": "A nuvem rejeitou a palavra-passe guardada para {email}. Introduza a palavra-passe atual.",
+        "data": {
+          "password": "Palavra-passe"
+        },
+        "data_description": {
+          "password": "A palavra-passe atual da conta."
+        }
+      },
+      "reconfigure": {
+        "title": "Reconfigurar Udiconnect Plus",
+        "description": "Atualize as credenciais desta conta. Para utilizar outra conta, adicione uma nova entrada da integração.",
+        "data": {
+          "email": "E-mail",
+          "password": "Palavra-passe"
+        },
+        "data_description": {
+          "email": "Tem de ser a mesma conta com que esta entrada foi criada.",
+          "password": "A palavra-passe atual da conta."
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "E-mail ou palavra-passe inválidos",
+      "cannot_connect": "Não foi possível contactar a nuvem Udiconnect Plus",
+      "unknown": "Erro inesperado, verifique os registos"
+    },
+    "abort": {
+      "already_configured": "Esta conta já está configurada",
+      "reauth_successful": "Reautenticação concluída com sucesso",
+      "reconfigure_successful": "Reconfiguração concluída com sucesso",
+      "wrong_account": "O e-mail pertence a uma conta diferente da configurada"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Opções do Udiconnect Plus",
+        "data": {
+          "scan_interval": "Intervalo de atualização"
+        },
+        "data_description": {
+          "scan_interval": "Com que frequência consultar a nuvem pelo estado dos dispositivos, em segundos. Depois de um comando a integração consulta mais depressa sozinha até o motor parar."
+        }
+      }
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "connectivity": {
+        "name": "Conectividade"
+      },
+      "low_battery": {
+        "name": "Bateria fraca"
+      }
+    },
+    "update": {
+      "firmware": {
+        "name": "Firmware"
+      }
+    }
+  },
+  "exceptions": {
+    "invalid_auth": {
+      "message": "A nuvem Udiconnect Plus rejeitou as credenciais"
+    },
+    "cannot_connect": {
+      "message": "Não foi possível contactar a nuvem Udiconnect Plus: {error}"
+    },
+    "unexpected_response": {
+      "message": "Resposta inesperada da nuvem Udiconnect Plus: {error}"
+    },
+    "set_position_failed": {
+      "message": "Não foi possível mover {name}: {error}"
+    },
+    "stop_failed": {
+      "message": "Não foi possível parar {name}: {error}"
+    }
+  }
+}

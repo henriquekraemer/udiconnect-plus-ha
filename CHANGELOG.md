@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Cover device class follows the cloud `category` (blind, curtain, shutter, shade, awning).
 - Brand icon bundled with the integration.
 - Field descriptions in the configuration dialogs.
+- Portuguese (Portugal) and Spanish translations.
 
 ### Changed
 

@@ -34,6 +34,9 @@ someone else's account.
 - Update `CHANGELOG.md` under *Unreleased* for anything a user would notice.
 - Do not bump the version; that happens in the release commit.
 - Keep commit messages in the imperative mood with a short subject line.
+- New user-facing strings go into every file in `translations/` (`en`, `pt-BR`, `pt`,
+  `es`). If you do not speak a language, copy the English text; a test checks that all
+  files have the same keys.
 - Code style follows Home Assistant core: short docstrings, `ruff` clean, comments only
   where the reason is not obvious.
 
