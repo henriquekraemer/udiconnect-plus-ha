@@ -1,0 +1,48 @@
+name: Bug report
+description: Something is not working
+labels: [bug]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What happened
+      description: What did you do, what did you expect, what happened instead.
+    validations:
+      required: true
+  - type: input
+    id: ha_version
+    attributes:
+      label: Home Assistant version
+      placeholder: "2026.8.3"
+    validations:
+      required: true
+  - type: input
+    id: integration_version
+    attributes:
+      label: Integration version
+      description: Settings > Devices & services > Udiconnect Plus, or HACS.
+      placeholder: "1.0.0"
+    validations:
+      required: true
+  - type: input
+    id: model
+    attributes:
+      label: Device model
+      placeholder: "UDIN-4205"
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: |
+        Enable debug logging and paste the relevant lines. Remove anything personal.
+        ```yaml
+        logger:
+          logs:
+            custom_components.udiconnect_plus: debug
+        ```
+      render: text
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostics
+      description: Attach the diagnostics file (Settings > Devices & services > Udiconnect Plus > three-dot menu > Download diagnostics). Credentials, tokens, MAC and coordinates are redacted automatically.
