@@ -37,8 +37,9 @@ someone else's account.
 - Code style follows Home Assistant core: short docstrings, `ruff` clean, comments only
   where the reason is not obvious.
 
-CI runs hassfest, the HACS validation and the test suite. Workflows from first-time
-contributors need approval before they run.
+CI runs hassfest, the HACS validation and the test suite. Workflows on pull requests
+from forks only run after a maintainer approves them, every time. Merging needs a
+passing CI and a maintainer review.
 
 ## Reporting API findings
 
