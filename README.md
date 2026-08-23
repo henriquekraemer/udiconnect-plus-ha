@@ -50,6 +50,10 @@ tried: open, close, stop, a position in between, and whether the sensors make se
 
 ### HACS
 
+The integration is waiting for inclusion in the HACS default store
+([hacs/default#10252](https://github.com/hacs/default/pull/10252)). Until then it has to be
+added as a custom repository:
+
 1. HACS → three-dot menu → **Custom repositories**
 2. Repository `https://github.com/henriquekraemer/udiconnect-plus-ha`, category **Integration**
 3. Search for **Udiconnect Plus**, download it and restart Home Assistant
