@@ -46,6 +46,8 @@ Each motor becomes a device with:
 | `binary_sensor.<name>_low_battery` | `lowBattery` flag from the cloud |
 | `update.<name>_firmware` | Installed vs. latest firmware (read-only; update from the app) |
 
+Translations: English, Portuguese (Brazil and Portugal) and Spanish.
+
 Cover attributes: `device_id`, `home_id`, `home_name`, `category`, `is_calibrating`.
 Devices whose `controllerType` is not `Curtain` (locks, for example) only get the
 diagnostic entities.
