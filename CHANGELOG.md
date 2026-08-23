@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-08-22
+
 ### Fixed
 
 - Cover commands failing with `CurtainSetPosition refused ... no message` when the cloud
@@ -28,5 +30,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Migration of config entries and entity ids from `rezendeneto/udiconnect-plus-ha`.
 - `scripts/probe_api.py` for inspecting an account without Home Assistant.
 
-[Unreleased]: https://github.com/henriquekraemer/udiconnect-plus-ha/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/henriquekraemer/udiconnect-plus-ha/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/henriquekraemer/udiconnect-plus-ha/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/henriquekraemer/udiconnect-plus-ha/releases/tag/v1.0.0
