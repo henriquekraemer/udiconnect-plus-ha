@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Generator
+from collections.abc import Callable, Generator
 import copy
 import json
 import pathlib
@@ -77,6 +77,7 @@ class CloudMock:
         self.sync_exc: Exception | None = None
         self.set_status = 200
         self.set_body: dict[str, Any] = {"result": True}
+        self.set_body_fn: Callable[[], dict[str, Any]] | None = None
         self.set_exc: Exception | None = None
         self.rejected_tokens: set[str] = set()
         self._register()
@@ -110,7 +111,8 @@ class CloudMock:
             raise self.set_exc
         if self._token_rejected():
             return self._response(401, {"message": "Unauthorized"})
-        return self._response(self.set_status, self.set_body)
+        body = self.set_body_fn() if self.set_body_fn else self.set_body
+        return self._response(self.set_status, body)
 
     @property
     def calls(self):

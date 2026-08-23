@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+from unittest.mock import patch
+
 import aiohttp
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 import pytest
 
 from custom_components.udiconnect_plus.api import (
+    COMMAND_RETRY_DELAY,
     UdiconnectApiError,
     UdiconnectAuthError,
     UdiconnectClient,
@@ -296,8 +299,12 @@ async def test_stop(hass: HomeAssistant, cloud: CloudMock) -> None:
 
 async def test_stop_refused_by_cloud(hass: HomeAssistant, cloud: CloudMock) -> None:
     cloud.set_body = {"result": False}
-    with pytest.raises(UdiconnectApiError, match="CurtainStop"):
+    with (
+        patch("custom_components.udiconnect_plus.api.asyncio.sleep"),
+        pytest.raises(UdiconnectApiError, match="CurtainStop"),
+    ):
         await _client(hass).async_stop("101")
+    assert len(cloud.calls_to(SET_POSITION_URL)) == 2
 
 
 async def test_set_position_keeps_non_numeric_ids(
@@ -320,8 +327,23 @@ async def test_set_position_refused_by_cloud(
     hass: HomeAssistant, cloud: CloudMock
 ) -> None:
     cloud.set_body = {"result": False, "message": "Device offline"}
-    with pytest.raises(UdiconnectApiError, match="Device offline"):
+    with (
+        patch("custom_components.udiconnect_plus.api.asyncio.sleep") as mock_sleep,
+        pytest.raises(UdiconnectApiError, match="Device offline"),
+    ):
         await _client(hass).async_set_position("101", 10)
+    assert len(cloud.calls_to(SET_POSITION_URL)) == 2
+    mock_sleep.assert_awaited_once_with(COMMAND_RETRY_DELAY)
+
+
+async def test_set_position_retries_once(hass: HomeAssistant, cloud: CloudMock) -> None:
+    bodies = iter([{"responseStatus": None, "result": False}, {"result": True}])
+    cloud.set_body_fn = lambda: next(bodies)
+    with patch("custom_components.udiconnect_plus.api.asyncio.sleep"):
+        await _client(hass).async_set_position("101", 10)
+    calls = cloud.calls_to(SET_POSITION_URL)
+    assert len(calls) == 2
+    assert calls[0][2] == calls[1][2]
 
 
 async def test_invalid_json_is_api_error(
