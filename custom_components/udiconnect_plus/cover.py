@@ -35,6 +35,14 @@ _LOGGER = logging.getLogger(__name__)
 
 PARALLEL_UPDATES = 0
 
+DEVICE_CLASSES = {
+    "blind": CoverDeviceClass.BLIND,
+    "curtain": CoverDeviceClass.CURTAIN,
+    "shutter": CoverDeviceClass.SHUTTER,
+    "shade": CoverDeviceClass.SHADE,
+    "awning": CoverDeviceClass.AWNING,
+}
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -75,7 +83,6 @@ class UdiconnectCover(UdiconnectEntity, CoverEntity):
     """Udiconnect Plus blind or curtain."""
 
     _attr_name = None
-    _attr_device_class = CoverDeviceClass.BLIND
     _attr_supported_features = (
         CoverEntityFeature.OPEN
         | CoverEntityFeature.CLOSE
@@ -87,6 +94,8 @@ class UdiconnectCover(UdiconnectEntity, CoverEntity):
         """Initialize the cover."""
         super().__init__(coordinator, device_id)
         self._attr_unique_id = device_id
+        category = (coordinator.data[device_id].category or "").lower()
+        self._attr_device_class = DEVICE_CLASSES.get(category, CoverDeviceClass.BLIND)
         self._target_position: int | None = None
         self._move_started_at: float | None = None
         self._unsub_follow_up: CALLBACK_TYPE | None = None

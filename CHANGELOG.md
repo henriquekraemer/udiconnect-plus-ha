@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Reconfigure flow to update the account password from the integration entry.
+- Devices no longer reported by the cloud can be deleted from the device page.
+- Cover device class follows the cloud `category` (blind, curtain, shutter, shade, awning).
+- Brand icon bundled with the integration.
+- Field descriptions in the configuration dialogs.
+
+### Changed
+
+- Default polling interval is now 60 s (minimum 10 s). Existing installations keep the
+  interval saved in their options.
+
 ## [1.0.1] - 2026-08-22
 
 ### Fixed

@@ -7,6 +7,10 @@
         "data": {
           "email": "E-mail",
           "password": "Senha"
+        },
+        "data_description": {
+          "email": "O e-mail da sua conta Udiconnect Plus.",
+          "password": "A senha da sua conta Udiconnect Plus."
         }
       },
       "reauth_confirm": {
@@ -14,6 +18,21 @@
         "description": "A nuvem rejeitou a senha salva para {email}. Informe a senha atual.",
         "data": {
           "password": "Senha"
+        },
+        "data_description": {
+          "password": "A senha atual da conta."
+        }
+      },
+      "reconfigure": {
+        "title": "Reconfigurar Udiconnect Plus",
+        "description": "Atualize as credenciais desta conta. Para usar outra conta, adicione uma nova entrada da integração.",
+        "data": {
+          "email": "E-mail",
+          "password": "Senha"
+        },
+        "data_description": {
+          "email": "Deve ser a mesma conta com que esta entrada foi criada.",
+          "password": "A senha atual da conta."
         }
       }
     },
@@ -24,7 +43,9 @@
     },
     "abort": {
       "already_configured": "Esta conta já está configurada",
-      "reauth_successful": "Reautenticação concluída com sucesso"
+      "reauth_successful": "Reautenticação concluída com sucesso",
+      "reconfigure_successful": "Reconfiguração concluída com sucesso",
+      "wrong_account": "O e-mail pertence a uma conta diferente da configurada"
     }
   },
   "options": {

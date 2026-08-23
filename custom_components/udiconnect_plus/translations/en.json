@@ -7,6 +7,10 @@
         "data": {
           "email": "E-mail",
           "password": "Password"
+        },
+        "data_description": {
+          "email": "The e-mail of your Udiconnect Plus account.",
+          "password": "The password of your Udiconnect Plus account."
         }
       },
       "reauth_confirm": {
@@ -14,6 +18,21 @@
         "description": "The cloud rejected the stored password for {email}. Enter the current one.",
         "data": {
           "password": "Password"
+        },
+        "data_description": {
+          "password": "The current password of the account."
+        }
+      },
+      "reconfigure": {
+        "title": "Reconfigure Udiconnect Plus",
+        "description": "Update the credentials of this account. To use a different account, add a new integration entry instead.",
+        "data": {
+          "email": "E-mail",
+          "password": "Password"
+        },
+        "data_description": {
+          "email": "Must be the same account this entry was created with.",
+          "password": "The current password of the account."
         }
       }
     },
@@ -24,7 +43,9 @@
     },
     "abort": {
       "already_configured": "This account is already configured",
-      "reauth_successful": "Re-authentication was successful"
+      "reauth_successful": "Re-authentication was successful",
+      "reconfigure_successful": "Reconfiguration was successful",
+      "wrong_account": "The e-mail belongs to a different account than the one configured"
     }
   },
   "options": {

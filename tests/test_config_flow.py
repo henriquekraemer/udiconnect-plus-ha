@@ -154,3 +154,44 @@ async def test_options_flow_updates_interval_without_reload(
     assert setup_entry.options == {CONF_SCAN_INTERVAL: 120}
     assert setup_entry.runtime_data is coordinator
     assert coordinator.update_interval.total_seconds() == 120
+
+
+async def test_reconfigure_flow(
+    hass: HomeAssistant, cloud: CloudMock, setup_entry: MockConfigEntry
+) -> None:
+    result = await setup_entry.start_reconfigure_flow(hass)
+    assert result["type"] is FlowResultType.FORM
+    assert result["step_id"] == "reconfigure"
+
+    cloud.login_status = 401
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {CONF_EMAIL: TEST_EMAIL, CONF_PASSWORD: "wrong"}
+    )
+    assert result["type"] is FlowResultType.FORM
+    assert result["errors"] == {"base": "invalid_auth"}
+
+    cloud.login_status = 200
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        {CONF_EMAIL: TEST_EMAIL.upper(), CONF_PASSWORD: "new-password"},
+    )
+    await hass.async_block_till_done()
+    assert result["type"] is FlowResultType.ABORT
+    assert result["reason"] == "reconfigure_successful"
+    assert setup_entry.data[CONF_EMAIL] == TEST_EMAIL.upper()
+    assert setup_entry.data[CONF_PASSWORD] == "new-password"
+    assert setup_entry.unique_id == TEST_EMAIL
+    assert setup_entry.state is config_entries.ConfigEntryState.LOADED
+
+
+async def test_reconfigure_rejects_other_account(
+    hass: HomeAssistant, cloud: CloudMock, setup_entry: MockConfigEntry
+) -> None:
+    result = await setup_entry.start_reconfigure_flow(hass)
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        {CONF_EMAIL: "other@example.com", CONF_PASSWORD: TEST_PASSWORD},
+    )
+    assert result["type"] is FlowResultType.ABORT
+    assert result["reason"] == "wrong_account"
+    assert setup_entry.data[CONF_EMAIL] == TEST_EMAIL
