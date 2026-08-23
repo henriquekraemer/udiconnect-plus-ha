@@ -6,6 +6,7 @@ from homeassistant.components.diagnostics import REDACTED
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
+from custom_components.udiconnect_plus.const import DEFAULT_SCAN_INTERVAL
 from custom_components.udiconnect_plus.diagnostics import (
     async_get_config_entry_diagnostics,
 )
@@ -23,7 +24,7 @@ async def test_config_entry_diagnostics(
     }
     assert diagnostics["entry"]["title"] == REDACTED
     assert diagnostics["coordinator"]["last_update_success"] is True
-    assert diagnostics["coordinator"]["update_interval"] == 30
+    assert diagnostics["coordinator"]["update_interval"] == DEFAULT_SCAN_INTERVAL
     assert diagnostics["entry"]["data"]["device_uuid"] == REDACTED
 
     devices = {device["device_id"]: device for device in diagnostics["devices"]}

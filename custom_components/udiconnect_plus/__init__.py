@@ -9,7 +9,7 @@ from uuid import uuid4
 from homeassistant.const import CONF_EMAIL, CONF_PASSWORD, CONF_SCAN_INTERVAL, Platform
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
-from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers import device_registry as dr, entity_registry as er
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .api import UdiconnectAuthError, UdiconnectClient, UdiconnectError
@@ -76,6 +76,16 @@ async def _async_update_listener(
 async def async_unload_entry(hass: HomeAssistant, entry: UdiconnectConfigEntry) -> bool:
     """Unload a config entry."""
     return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+
+
+async def async_remove_config_entry_device(
+    hass: HomeAssistant, entry: UdiconnectConfigEntry, device_entry: dr.DeviceEntry
+) -> bool:
+    """Allow removing a device that the cloud no longer reports."""
+    return not any(
+        identifier[0] == DOMAIN and identifier[1] in entry.runtime_data.data
+        for identifier in device_entry.identifiers
+    )
 
 
 async def async_migrate_entry(

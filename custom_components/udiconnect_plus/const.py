@@ -14,8 +14,8 @@ API_TIMEOUT_SECONDS: Final = 15
 
 CONF_DEVICE_UUID: Final = "device_uuid"
 
-DEFAULT_SCAN_INTERVAL: Final = 30
-MIN_SCAN_INTERVAL: Final = 5
+DEFAULT_SCAN_INTERVAL: Final = 60
+MIN_SCAN_INTERVAL: Final = 10
 MAX_SCAN_INTERVAL: Final = 600
 
 # Faster polling while a cover is moving

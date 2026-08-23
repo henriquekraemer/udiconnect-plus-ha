@@ -32,7 +32,7 @@ from custom_components.udiconnect_plus.const import (
     MOVE_TIMEOUT_SECONDS,
 )
 
-from .conftest import SET_POSITION_URL, SYNC_URL, CloudMock
+from .conftest import SET_POSITION_URL, SYNC_URL, CloudMock, setup_integration
 
 SALA = "cover.persiana_sala"
 QUARTO = "cover.persiana_quarto"
@@ -323,3 +323,25 @@ async def test_device_removed_from_account_becomes_unavailable(
     cloud.payload["account"]["homeList"][0]["deviceList"].pop(0)
     await _advance(hass, freezer, DEFAULT_SCAN_INTERVAL + 1)
     assert hass.states.get(SALA).state == STATE_UNAVAILABLE
+
+
+@pytest.mark.parametrize(
+    ("category", "expected"),
+    [
+        ("Blind", "blind"),
+        ("Curtain", "curtain"),
+        ("Shutter", "shutter"),
+        ("Whatever", "blind"),
+        (None, "blind"),
+    ],
+)
+async def test_device_class_from_category(
+    hass: HomeAssistant,
+    cloud: CloudMock,
+    mock_config_entry: MockConfigEntry,
+    category,
+    expected,
+) -> None:
+    cloud.device("101")["category"] = category
+    assert await setup_integration(hass, mock_config_entry)
+    assert hass.states.get(SALA).attributes["device_class"] == expected

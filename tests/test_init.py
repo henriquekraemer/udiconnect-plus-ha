@@ -7,7 +7,9 @@ from homeassistant.config_entries import SOURCE_REAUTH, ConfigEntryState
 from homeassistant.const import CONF_EMAIL, CONF_PASSWORD
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr, entity_registry as er
+from homeassistant.setup import async_setup_component
 from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_homeassistant_custom_component.typing import WebSocketGenerator
 
 from custom_components.udiconnect_plus.const import CONF_DEVICE_UUID, DOMAIN
 
@@ -133,3 +135,39 @@ async def test_future_version_is_not_downgraded(
     future.add_to_hass(hass)
     assert not await hass.config_entries.async_setup(future.entry_id)
     assert future.state is ConfigEntryState.MIGRATION_ERROR
+
+
+async def test_remove_stale_device(
+    hass: HomeAssistant,
+    hass_ws_client: WebSocketGenerator,
+    cloud: CloudMock,
+    setup_entry: MockConfigEntry,
+) -> None:
+    assert await async_setup_component(hass, "config", {})
+    device_registry = dr.async_get(hass)
+    device = device_registry.async_get_device(identifiers={(DOMAIN, "101")})
+    assert device is not None
+
+    client = await hass_ws_client(hass)
+    await client.send_json_auto_id(
+        {
+            "type": "config/device_registry/remove_config_entry",
+            "config_entry_id": setup_entry.entry_id,
+            "device_id": device.id,
+        }
+    )
+    response = await client.receive_json()
+    assert not response["success"]  # still reported by the cloud
+
+    cloud.payload["account"]["homeList"][0]["deviceList"].pop(0)
+    await setup_entry.runtime_data.async_refresh()
+    await client.send_json_auto_id(
+        {
+            "type": "config/device_registry/remove_config_entry",
+            "config_entry_id": setup_entry.entry_id,
+            "device_id": device.id,
+        }
+    )
+    response = await client.receive_json()
+    assert response["success"]
+    assert device_registry.async_get_device(identifiers={(DOMAIN, "101")}) is None

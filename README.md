@@ -13,7 +13,7 @@ this integration talks to the same cloud API the app uses.
 - `cover` entity with open, close, stop and position (0-100%), showing opening/closing
   while the motor moves
 - Diagnostic entities per device: connectivity, low battery and a firmware `update` entity
-- UI configuration with reauth when the password changes; polling interval in the options
+- UI configuration with reauth and reconfigure; polling interval in the options
 - Automatic re-login when the token expires; tolerant of the cloud's 503s, timeouts and
   incomplete responses
 - Diagnostics download with the redacted raw payload, for bug reports
@@ -41,7 +41,7 @@ Each motor becomes a device with:
 
 | Entity | Description |
 |---|---|
-| `cover.<name>` | Position control (0 = closed, 100 = open), open/close/stop |
+| `cover.<name>` | Position control (0 = closed, 100 = open), open/close/stop; device class follows the cloud `category` (blind, curtain, shutter) |
 | `binary_sensor.<name>_connectivity` | Device online |
 | `binary_sensor.<name>_low_battery` | `lowBattery` flag from the cloud |
 | `update.<name>_firmware` | Installed vs. latest firmware (read-only; update from the app) |
@@ -52,9 +52,13 @@ diagnostic entities.
 
 ### Options
 
-**Polling interval** (default 30 s, minimum 5 s). After a command the integration polls
+**Polling interval** (default 60 s, minimum 10 s). After a command the integration polls
 every 5 s on its own until the motor reaches the target position, so a longer interval
 only delays changes made from the app, Alexa or a remote.
+
+To change the password without waiting for a reauthentication prompt, use **Reconfigure**
+on the integration entry. Devices that disappear from the account can be deleted from the
+device page.
 
 ### Coming from the original integration
 
