@@ -46,3 +46,20 @@ passing CI and a maintainer review.
 The cloud API is undocumented. If you find a new endpoint, field or device type, open an
 issue with the request/response (redacted) and the device model. That is how the
 integration grows.
+
+## Maintainer notes
+
+Pull requests are merged locally, not with the GitHub merge button, so the commit
+identity stays the one configured in this clone:
+
+```bash
+git fetch origin
+git checkout main && git pull --ff-only
+git merge --squash origin/<branch>
+git commit            # subject: PR title (#<number>); body: PR description
+git push origin main  # admin bypass of the main ruleset
+git push origin --delete <branch>
+```
+
+GitHub closes the pull request when its commits reach `main`. The ruleset on `main`
+still applies to everyone else.
