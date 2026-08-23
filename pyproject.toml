@@ -1,6 +1,6 @@
 [project]
 name = "udiconnect-plus-ha"
-version = "1.0.1"
+version = "1.0.2"
 description = "Home Assistant integration for Udiconnect Plus (Udinese) blinds and curtains"
 readme = "README.md"
 requires-python = ">=3.13"
