@@ -44,7 +44,7 @@ class UdiconnectCoordinator(DataUpdateCoordinator[dict[str, UdiDevice]]):
             hass,
             _LOGGER,
             config_entry=entry,
-            name=f"{DOMAIN} ({entry.title})",
+            name=DOMAIN,
             update_interval=timedelta(seconds=scan_interval),
             request_refresh_debouncer=Debouncer(
                 hass, _LOGGER, cooldown=REQUEST_REFRESH_COOLDOWN, immediate=False

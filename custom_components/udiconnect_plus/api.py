@@ -23,6 +23,11 @@ _SYNC_ACCOUNT_PATH = "/App/SyncAccount"
 # Single endpoint for all curtain commands; the "action" field selects the command.
 _CURTAIN_PATH = "/Curtain/SetPositionCurtain"
 
+# The cloud forwards commands to the motor and answers result=false when it
+# gets no ack in time, which happens now and then. One retry covers it.
+COMMAND_RETRIES = 2
+COMMAND_RETRY_DELAY = 1.5
+
 _COVER_CONTROLLER_TYPES = ("curtain", "blind", "shutter")
 _NON_COVER_CATEGORY_HINTS = ("lock", "fechadura", "camera", "câmera", "gateway", "hub")
 
@@ -357,13 +362,21 @@ class UdiconnectClient:
     async def _async_curtain_action(
         self, device_id: str, action: str, extra: dict[str, Any]
     ) -> None:
-        data = await self._async_request(
-            _CURTAIN_PATH,
-            {"action": action, "deviceId": _cloud_device_id(device_id), **extra},
-        )
-        if not isinstance(data, dict) or not _as_bool(data.get("result"), False):
-            message = data.get("message") if isinstance(data, dict) else data
-            raise UdiconnectApiError(
-                f"{action} refused for device {device_id}: {message or 'no message'}"
+        payload = {"action": action, "deviceId": _cloud_device_id(device_id), **extra}
+        data: Any = None
+        for attempt in range(1, COMMAND_RETRIES + 1):
+            data = await self._async_request(_CURTAIN_PATH, payload)
+            if isinstance(data, dict) and _as_bool(data.get("result"), False):
+                _LOGGER.debug("%s accepted for device %s", action, device_id)
+                return
+            _LOGGER.debug(
+                "%s refused for device %s (attempt %s/%s): %s",
+                action,
+                device_id,
+                attempt,
+                COMMAND_RETRIES,
+                data,
             )
-        _LOGGER.debug("%s sent to device %s", action, device_id)
+            if attempt < COMMAND_RETRIES:
+                await asyncio.sleep(COMMAND_RETRY_DELAY)
+        raise UdiconnectApiError(f"{action} refused for device {device_id}: {data}")

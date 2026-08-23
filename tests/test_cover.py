@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import timedelta
+from unittest.mock import patch
 
 import aiohttp
 from freezegun.api import FrozenDateTimeFactory
@@ -191,7 +192,10 @@ async def test_stop_refused_raises(
     hass: HomeAssistant, cloud: CloudMock, setup_entry: MockConfigEntry
 ) -> None:
     cloud.set_body = {"result": False}
-    with pytest.raises(HomeAssistantError, match="Persiana Sala"):
+    with (
+        patch("custom_components.udiconnect_plus.api.asyncio.sleep"),
+        pytest.raises(HomeAssistantError, match="Persiana Sala"),
+    ):
         await hass.services.async_call(
             COVER_DOMAIN, SERVICE_STOP_COVER, {ATTR_ENTITY_ID: SALA}, blocking=True
         )
@@ -201,7 +205,10 @@ async def test_command_refused_by_cloud_raises(
     hass: HomeAssistant, cloud: CloudMock, setup_entry: MockConfigEntry
 ) -> None:
     cloud.set_body = {"result": False, "message": "Busy"}
-    with pytest.raises(HomeAssistantError, match="Persiana Sala"):
+    with (
+        patch("custom_components.udiconnect_plus.api.asyncio.sleep"),
+        pytest.raises(HomeAssistantError, match="Persiana Sala"),
+    ):
         await hass.services.async_call(
             COVER_DOMAIN, SERVICE_OPEN_COVER, {ATTR_ENTITY_ID: SALA}, blocking=True
         )
