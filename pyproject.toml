@@ -1,0 +1,40 @@
+[project]
+name = "udiconnect-plus-ha"
+version = "1.0.0"
+description = "Home Assistant integration for Udiconnect Plus (Udinese) blinds and curtains"
+readme = "README.md"
+requires-python = ">=3.13"
+license = { text = "MIT" }
+
+[tool.ruff]
+target-version = "py313"
+line-length = 88
+src = ["custom_components", "tests"]
+
+[tool.ruff.lint]
+select = [
+  "A", "B", "C4", "D", "E", "F", "I", "ISC", "N", "PL", "RUF", "S", "SIM", "T20", "UP", "W",
+]
+ignore = [
+  "D203", "D213",      # conflicting docstring styles
+  "PLR2004",           # magic values are fine in this small codebase
+  "PLR0913",           # entity constructors take several arguments
+  "RUF012",            # HA entity class attributes are mutable by design
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["D", "S101", "S105", "S106", "PLR", "E501"]
+"scripts/**" = ["T201", "E501", "D103", "PLW2901"]
+
+[tool.ruff.lint.isort]
+force-sort-within-sections = true
+known-first-party = ["custom_components.udiconnect_plus"]
+combine-as-imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+addopts = "-p no:cacheprovider"
+
+[tool.coverage.run]
+source = ["custom_components/udiconnect_plus"]

@@ -1,0 +1,75 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Conta Udiconnect Plus",
+        "description": "Entre com o mesmo e-mail e senha que você usa no aplicativo Udiconnect Plus.",
+        "data": {
+          "email": "E-mail",
+          "password": "Senha"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Reautenticar Udiconnect Plus",
+        "description": "A nuvem rejeitou a senha salva para {email}. Informe a senha atual.",
+        "data": {
+          "password": "Senha"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "E-mail ou senha inválidos",
+      "cannot_connect": "Não foi possível acessar a nuvem Udiconnect Plus",
+      "unknown": "Erro inesperado, verifique os logs"
+    },
+    "abort": {
+      "already_configured": "Esta conta já está configurada",
+      "reauth_successful": "Reautenticação concluída com sucesso"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Opções do Udiconnect Plus",
+        "data": {
+          "scan_interval": "Intervalo de atualização"
+        },
+        "data_description": {
+          "scan_interval": "Com que frequência consultar a nuvem pelo estado dos dispositivos, em segundos. Depois de um comando a integração consulta mais rápido sozinha até o motor parar."
+        }
+      }
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "connectivity": {
+        "name": "Conectividade"
+      },
+      "low_battery": {
+        "name": "Bateria fraca"
+      }
+    },
+    "update": {
+      "firmware": {
+        "name": "Firmware"
+      }
+    }
+  },
+  "exceptions": {
+    "invalid_auth": {
+      "message": "A nuvem Udiconnect Plus rejeitou as credenciais"
+    },
+    "cannot_connect": {
+      "message": "Não foi possível acessar a nuvem Udiconnect Plus: {error}"
+    },
+    "unexpected_response": {
+      "message": "Resposta inesperada da nuvem Udiconnect Plus: {error}"
+    },
+    "set_position_failed": {
+      "message": "Não foi possível mover {name}: {error}"
+    },
+    "stop_failed": {
+      "message": "Não foi possível parar {name}: {error}"
+    }
+  }
+}
