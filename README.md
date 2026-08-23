@@ -20,6 +20,32 @@ this integration talks to the same cloud API the app uses.
 - Migrates config entries and entities from
   [rezendeneto/udiconnect-plus-ha](https://github.com/rezendeneto/udiconnect-plus-ha)
 
+## Compatibility
+
+Every device the Udiconnect Plus app shows as a curtain (`controllerType: Curtain`) gets a
+cover entity; the API is the same for all of them. What has actually been exercised:
+
+| Model | What it is | Status | Open/close/position | Stop | Sensors, firmware entity |
+|---|---|---|---|---|---|
+| UDIN-4205 | Wi-Fi command for blind motors | **Tested** by the maintainer (firmware 2.1.3.0) | Yes | Yes | Yes |
+| UDIN-4204 | Udiconnect Flex Wi-Fi command | **Reported** working with the same API (user of the original integration, 2026-04) | Yes | Not yet confirmed | Not yet confirmed |
+| UDIN-4202 | Wi-Fi command for UDM35S/UDM45S motors | **Reported** working with the same API (user of the original integration, 2026-04) | Yes | Not yet confirmed | Not yet confirmed |
+| UDM35W Bolt | Motor with built-in Wi-Fi | Untested | Expected | Expected | Expected |
+| UDM35W Blind | Motor with built-in Wi-Fi | Untested | Expected | Expected | Expected |
+
+*Tested* means verified end to end on a real device: position polarity, stop, cloud
+response times and the diagnostic entities. *Reported* means someone confirmed basic
+control through the same cloud endpoints, but not with this integration or not every
+feature. *Expected* means the device uses the Udiconnect Plus app and the same cloud, so
+it should work, but nobody has confirmed it.
+
+Locks and other non-curtain devices on the account only get the diagnostic entities.
+
+To move a model up this table, open an issue with the diagnostics download (Settings >
+Devices & services > Udiconnect Plus > three-dot menu > Download diagnostics) or the
+output of `scripts/probe_api.py --raw`. Both are redacted. Mention which features you
+tried: open, close, stop, a position in between, and whether the sensors make sense.
+
 ## Installation
 
 ### HACS

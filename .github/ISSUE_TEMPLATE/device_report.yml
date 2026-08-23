@@ -1,0 +1,37 @@
+name: Device report
+description: Confirm that a model works (or not) so it can be added to the compatibility table
+labels: [compatibility]
+body:
+  - type: input
+    id: model
+    attributes:
+      label: Model
+      description: As shown on the device page in Home Assistant, e.g. UDIN-4204, UDM35W Bolt.
+    validations:
+      required: true
+  - type: input
+    id: firmware
+    attributes:
+      label: Firmware version
+      placeholder: "2.1.3.0"
+  - type: checkboxes
+    id: features
+    attributes:
+      label: What works
+      options:
+        - label: Open and close
+        - label: Set a position in between
+        - label: Stop while moving
+        - label: Position shown in Home Assistant matches the app
+        - label: Connectivity and low battery sensors make sense
+        - label: Firmware entity shows the installed version
+  - type: textarea
+    id: notes
+    attributes:
+      label: Anything odd
+      description: Wrong direction, delays, errors, entities missing.
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostics
+      description: Attach the diagnostics download or the output of `scripts/probe_api.py --raw`. Both are redacted.
