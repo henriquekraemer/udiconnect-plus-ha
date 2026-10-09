@@ -35,6 +35,16 @@ TEST_UUID = "11111111-2222-3333-4444-555555555555"
 _FIXTURES = pathlib.Path(__file__).parent / "fixtures"
 
 
+def _load_sync_payload() -> dict[str, Any]:
+    return json.loads((_FIXTURES / "sync_account.json").read_text())
+
+
+# Unique id of device 101, the only one in the fixture with a deviceUS
+SALA_KEY: str = _load_sync_payload()["account"]["homeList"][0]["deviceList"][0][
+    "deviceUS"
+]
+
+
 @pytest.fixture(autouse=True)
 def auto_enable_custom_integrations(enable_custom_integrations: None) -> None:
     """Enable custom integrations."""
@@ -43,7 +53,7 @@ def auto_enable_custom_integrations(enable_custom_integrations: None) -> None:
 @pytest.fixture
 def sync_payload() -> dict[str, Any]:
     """Return the SyncAccount fixture payload."""
-    return json.loads((_FIXTURES / "sync_account.json").read_text())
+    return _load_sync_payload()
 
 
 @pytest.fixture
@@ -53,7 +63,7 @@ def mock_config_entry() -> MockConfigEntry:
         domain=DOMAIN,
         title=TEST_EMAIL,
         unique_id=TEST_EMAIL,
-        version=2,
+        version=3,
         minor_version=1,
         data={
             CONF_EMAIL: TEST_EMAIL,

@@ -10,6 +10,7 @@ from freezegun.api import FrozenDateTimeFactory
 from homeassistant.components.cover import (
     ATTR_CURRENT_POSITION,
     ATTR_POSITION,
+    DATA_COMPONENT,
     DOMAIN as COVER_DOMAIN,
     SERVICE_CLOSE_COVER,
     SERVICE_OPEN_COVER,
@@ -20,6 +21,7 @@ from homeassistant.components.cover import (
 from homeassistant.const import ATTR_ENTITY_ID, STATE_UNAVAILABLE
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers import entity_registry as er
 import pytest
 from pytest_homeassistant_custom_component.common import (
     MockConfigEntry,
@@ -28,11 +30,18 @@ from pytest_homeassistant_custom_component.common import (
 
 from custom_components.udiconnect_plus.const import (
     DEFAULT_SCAN_INTERVAL,
+    DOMAIN,
     MOVE_FOLLOW_UP_SECONDS,
     MOVE_TIMEOUT_SECONDS,
 )
 
-from .conftest import SET_POSITION_URL, SYNC_URL, CloudMock, setup_integration
+from .conftest import (
+    SALA_KEY,
+    SET_POSITION_URL,
+    SYNC_URL,
+    CloudMock,
+    setup_integration,
+)
 
 SALA = "cover.persiana_sala"
 QUARTO = "cover.persiana_quarto"
@@ -323,6 +332,56 @@ async def test_device_removed_from_account_becomes_unavailable(
     cloud.payload["account"]["homeList"][0]["deviceList"].pop(0)
     await _advance(hass, freezer, DEFAULT_SCAN_INTERVAL + 1)
     assert hass.states.get(SALA).state == STATE_UNAVAILABLE
+
+
+async def test_renumbered_device_keeps_its_entities(
+    hass: HomeAssistant,
+    freezer: FrozenDateTimeFactory,
+    cloud: CloudMock,
+    setup_entry: MockConfigEntry,
+) -> None:
+    registry = er.async_get(hass)
+    sala = registry.async_get_entity_id(COVER_DOMAIN, DOMAIN, SALA_KEY)
+    before = {
+        entry.entity_id
+        for entry in er.async_entries_for_config_entry(registry, setup_entry.entry_id)
+    }
+
+    cloud.device("101")["deviceId"] = 201
+    await _advance(hass, freezer, DEFAULT_SCAN_INTERVAL + 1)
+
+    after = {
+        entry.entity_id
+        for entry in er.async_entries_for_config_entry(registry, setup_entry.entry_id)
+    }
+    assert after == before
+    state = hass.states.get(sala)
+    assert state.state == CoverState.OPEN
+    assert state.attributes["device_id"] == "201"
+
+    await hass.services.async_call(
+        COVER_DOMAIN, SERVICE_CLOSE_COVER, {ATTR_ENTITY_ID: sala}, blocking=True
+    )
+    assert cloud.calls_to(SET_POSITION_URL)[-1][2]["deviceId"] == 201
+
+
+async def test_command_for_device_gone_from_cloud_raises(
+    hass: HomeAssistant,
+    freezer: FrozenDateTimeFactory,
+    cloud: CloudMock,
+    setup_entry: MockConfigEntry,
+) -> None:
+    sala = er.async_get(hass).async_get_entity_id(COVER_DOMAIN, DOMAIN, SALA_KEY)
+    cloud.payload["account"]["homeList"][0]["deviceList"].pop(0)
+    await _advance(hass, freezer, DEFAULT_SCAN_INTERVAL + 1)
+
+    # services skip unavailable entities, so call the entity directly
+    entity = hass.data[DATA_COMPONENT].get_entity(sala)
+    with pytest.raises(HomeAssistantError, match="no longer reported"):
+        await entity.async_stop_cover()
+    with pytest.raises(HomeAssistantError, match="no longer reported"):
+        await entity.async_close_cover()
+    assert not cloud.calls_to(SET_POSITION_URL)
 
 
 @pytest.mark.parametrize(

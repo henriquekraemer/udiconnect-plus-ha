@@ -55,15 +55,15 @@ async def async_setup_entry(
 
     @callback
     def _async_add_new_sensors() -> None:
-        new_ids = [
-            device_id for device_id in coordinator.data if device_id not in known
+        new_keys = [
+            device_key for device_key in coordinator.data if device_key not in known
         ]
-        if not new_ids:
+        if not new_keys:
             return
-        known.update(new_ids)
+        known.update(new_keys)
         async_add_entities(
-            UdiconnectBinarySensor(coordinator, device_id, description)
-            for device_id in new_ids
+            UdiconnectBinarySensor(coordinator, device_key, description)
+            for device_key in new_keys
             for description in SENSORS
         )
 
@@ -79,14 +79,14 @@ class UdiconnectBinarySensor(UdiconnectEntity, BinarySensorEntity):
     def __init__(
         self,
         coordinator: UdiconnectCoordinator,
-        device_id: str,
+        device_key: str,
         description: UdiconnectBinarySensorDescription,
     ) -> None:
         """Initialize the binary sensor."""
-        super().__init__(coordinator, device_id)
+        super().__init__(coordinator, device_key)
         self.entity_description = description
         self._attr_translation_key = description.key
-        self._attr_unique_id = f"{device_id}_{description.key}"
+        self._attr_unique_id = f"{device_key}_{description.key}"
 
     @property
     def is_on(self) -> bool | None:

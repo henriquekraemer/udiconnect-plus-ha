@@ -55,24 +55,24 @@ async def async_setup_entry(
 
     @callback
     def _async_add_new_covers() -> None:
-        new_ids: list[str] = []
-        for device_id, device in coordinator.data.items():
-            if device_id in known:
+        new_keys: list[str] = []
+        for device_key, device in coordinator.data.items():
+            if device_key in known:
                 continue
-            known.add(device_id)
+            known.add(device_key)
             if device.is_cover:
-                new_ids.append(device_id)
+                new_keys.append(device_key)
             else:
                 _LOGGER.info(
                     "Skipping device %s (%s): controllerType=%r category=%r",
                     device.name,
-                    device_id,
+                    device.device_id,
                     device.controller_type,
                     device.category,
                 )
-        if new_ids:
+        if new_keys:
             async_add_entities(
-                UdiconnectCover(coordinator, device_id) for device_id in new_ids
+                UdiconnectCover(coordinator, device_key) for device_key in new_keys
             )
 
     _async_add_new_covers()
@@ -90,11 +90,11 @@ class UdiconnectCover(UdiconnectEntity, CoverEntity):
         | CoverEntityFeature.STOP
     )
 
-    def __init__(self, coordinator: UdiconnectCoordinator, device_id: str) -> None:
+    def __init__(self, coordinator: UdiconnectCoordinator, device_key: str) -> None:
         """Initialize the cover."""
-        super().__init__(coordinator, device_id)
-        self._attr_unique_id = device_id
-        category = (coordinator.data[device_id].category or "").lower()
+        super().__init__(coordinator, device_key)
+        self._attr_unique_id = device_key
+        category = (coordinator.data[device_key].category or "").lower()
         self._attr_device_class = DEVICE_CLASSES.get(category, CoverDeviceClass.BLIND)
         self._target_position: int | None = None
         self._move_started_at: float | None = None
@@ -165,7 +165,7 @@ class UdiconnectCover(UdiconnectEntity, CoverEntity):
     async def async_stop_cover(self, **kwargs: Any) -> None:
         """Stop the cover."""
         try:
-            await self.coordinator.client.async_stop(self._device_id)
+            await self.coordinator.client.async_stop(self._cloud_device_id())
         except UdiconnectError as err:
             raise self._command_error("stop_failed", err) from err
 
@@ -175,7 +175,9 @@ class UdiconnectCover(UdiconnectEntity, CoverEntity):
 
     async def _async_set_position(self, position: int) -> None:
         try:
-            await self.coordinator.client.async_set_position(self._device_id, position)
+            await self.coordinator.client.async_set_position(
+                self._cloud_device_id(), position
+            )
         except UdiconnectError as err:
             raise self._command_error("set_position_failed", err) from err
 
@@ -187,13 +189,20 @@ class UdiconnectCover(UdiconnectEntity, CoverEntity):
         self._schedule_follow_up()
         await self.coordinator.async_request_refresh()
 
+    def _cloud_device_id(self) -> str:
+        # The cloud renumbers deviceId, so take it from the latest poll.
+        device = self.device
+        if device is None:
+            raise UdiconnectError("device is no longer reported by the cloud")
+        return device.device_id
+
     def _command_error(self, key: str, err: Exception) -> HomeAssistantError:
         device = self.device
         return HomeAssistantError(
             translation_domain=DOMAIN,
             translation_key=key,
             translation_placeholders={
-                "name": device.name if device else self._device_id,
+                "name": device.name if device else self.entity_id,
                 "error": str(err),
             },
         )

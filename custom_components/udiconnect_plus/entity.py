@@ -15,13 +15,13 @@ class UdiconnectEntity(CoordinatorEntity[UdiconnectCoordinator]):
 
     _attr_has_entity_name = True
 
-    def __init__(self, coordinator: UdiconnectCoordinator, device_id: str) -> None:
-        """Initialize the entity."""
+    def __init__(self, coordinator: UdiconnectCoordinator, device_key: str) -> None:
+        """Initialize the entity. device_key is the UdiDevice.unique_id."""
         super().__init__(coordinator)
-        self._device_id = device_id
-        device = coordinator.data[device_id]
+        self._device_key = device_key
+        device = coordinator.data[device_key]
         self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, device_id)},
+            identifiers={(DOMAIN, device_key)},
             connections=(
                 {(CONNECTION_NETWORK_MAC, device.mac_address)}
                 if device.mac_address
@@ -37,7 +37,7 @@ class UdiconnectEntity(CoordinatorEntity[UdiconnectCoordinator]):
     @property
     def device(self) -> UdiDevice | None:
         """Return the device data from the last update."""
-        return self.coordinator.data.get(self._device_id)
+        return self.coordinator.data.get(self._device_key)
 
     @property
     def available(self) -> bool:

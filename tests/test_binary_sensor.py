@@ -15,7 +15,7 @@ from pytest_homeassistant_custom_component.common import (
 
 from custom_components.udiconnect_plus.const import DEFAULT_SCAN_INTERVAL
 
-from .conftest import CloudMock
+from .conftest import SALA_KEY, CloudMock
 
 
 async def test_sensor_states(hass: HomeAssistant, setup_entry: MockConfigEntry) -> None:
@@ -35,7 +35,7 @@ async def test_sensor_registry_metadata(
 ) -> None:
     registry = er.async_get(hass)
     conn = registry.async_get("binary_sensor.persiana_sala_connectivity")
-    assert conn.unique_id == "101_connectivity"
+    assert conn.unique_id == f"{SALA_KEY}_connectivity"
     assert conn.entity_category is EntityCategory.DIAGNOSTIC
 
 

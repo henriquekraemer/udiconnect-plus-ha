@@ -13,7 +13,15 @@ from pytest_homeassistant_custom_component.typing import WebSocketGenerator
 
 from custom_components.udiconnect_plus.const import CONF_DEVICE_UUID, DOMAIN
 
-from .conftest import LOGIN_URL, TEST_EMAIL, TEST_PASSWORD, CloudMock, setup_integration
+from .conftest import (
+    LOGIN_URL,
+    SALA_KEY,
+    TEST_EMAIL,
+    TEST_PASSWORD,
+    TEST_UUID,
+    CloudMock,
+    setup_integration,
+)
 
 
 async def test_setup_and_unload(
@@ -31,7 +39,7 @@ async def test_setup_and_unload(
     assert hass.states.get("update.persiana_sala_firmware") is not None
 
     device_registry = dr.async_get(hass)
-    device = device_registry.async_get_device(identifiers={(DOMAIN, "101")})
+    device = device_registry.async_get_device(identifiers={(DOMAIN, SALA_KEY)})
     assert device is not None
     assert device.name == "Persiana Sala"
     assert device.manufacturer == "Udinese"
@@ -98,7 +106,7 @@ async def test_migrate_legacy_v1_entry(hass: HomeAssistant, cloud: CloudMock) ->
     await hass.async_block_till_done()
 
     assert legacy.state is ConfigEntryState.LOADED
-    assert legacy.version == 2
+    assert legacy.version == 3
     assert legacy.unique_id == TEST_EMAIL
     assert legacy.data[CONF_EMAIL] == TEST_EMAIL
     assert legacy.data[CONF_PASSWORD] == TEST_PASSWORD
@@ -107,7 +115,7 @@ async def test_migrate_legacy_v1_entry(hass: HomeAssistant, cloud: CloudMock) ->
 
     entry = registry.async_get("cover.persiana_sala_antiga")
     assert entry is not None
-    assert entry.unique_id == "101"
+    assert entry.unique_id == SALA_KEY
     assert hass.states.get("cover.persiana_sala_antiga").state == "open"
 
 
@@ -125,7 +133,7 @@ async def test_future_version_is_not_downgraded(
 ) -> None:
     future = MockConfigEntry(
         domain=DOMAIN,
-        version=3,
+        version=4,
         data={
             CONF_EMAIL: TEST_EMAIL,
             CONF_PASSWORD: TEST_PASSWORD,
@@ -137,6 +145,114 @@ async def test_future_version_is_not_downgraded(
     assert future.state is ConfigEntryState.MIGRATION_ERROR
 
 
+def _v2_entry() -> MockConfigEntry:
+    """Return a config entry as 1.0.2 created it."""
+    return MockConfigEntry(
+        domain=DOMAIN,
+        title=TEST_EMAIL,
+        unique_id=TEST_EMAIL,
+        version=2,
+        data={
+            CONF_EMAIL: TEST_EMAIL,
+            CONF_PASSWORD: TEST_PASSWORD,
+            CONF_DEVICE_UUID: TEST_UUID,
+        },
+    )
+
+
+async def test_migrate_device_id_registry_entries(
+    hass: HomeAssistant, cloud: CloudMock
+) -> None:
+    entry = _v2_entry()
+    entry.add_to_hass(hass)
+
+    device_registry = dr.async_get(hass)
+    entity_registry = er.async_get(hass)
+    device = device_registry.async_get_or_create(
+        config_entry_id=entry.entry_id, identifiers={(DOMAIN, "101")}
+    )
+    for domain, unique_id, object_id in (
+        ("cover", "101", "sala"),
+        ("binary_sensor", "101_connectivity", "sala_online"),
+        ("binary_sensor", "101_low_battery", "sala_battery"),
+        ("update", "101_firmware", "sala_firmware"),
+        ("cover", "90001", "sala_before_renumbering"),
+        ("cover", "102", "quarto"),
+    ):
+        entity_registry.async_get_or_create(
+            domain,
+            DOMAIN,
+            unique_id,
+            config_entry=entry,
+            suggested_object_id=object_id,
+        )
+
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    assert entry.version == 3
+    assert {
+        entity_id: entity_registry.async_get(entity_id).unique_id
+        for entity_id in (
+            "cover.sala",
+            "binary_sensor.sala_online",
+            "binary_sensor.sala_battery",
+            "update.sala_firmware",
+        )
+    } == {
+        "cover.sala": SALA_KEY,
+        "binary_sensor.sala_online": f"{SALA_KEY}_connectivity",
+        "binary_sensor.sala_battery": f"{SALA_KEY}_low_battery",
+        "update.sala_firmware": f"{SALA_KEY}_firmware",
+    }
+    assert hass.states.get("cover.sala").state == "open"
+
+    # an id the cloud no longer reports cannot be mapped
+    stale = entity_registry.async_get("cover.sala_before_renumbering")
+    assert stale.unique_id == "90001"
+    # no deviceUS: the deviceId stays
+    assert entity_registry.async_get("cover.quarto").unique_id == "102"
+
+    # nothing was created next to the migrated entries
+    entries = er.async_entries_for_config_entry(entity_registry, entry.entry_id)
+    assert len([e for e in entries if e.unique_id.startswith(SALA_KEY)]) == 4
+    assert device_registry.async_get(device.id).identifiers == {(DOMAIN, SALA_KEY)}
+    devices = dr.async_entries_for_config_entry(device_registry, entry.entry_id)
+    assert len(devices) == 3
+
+
+async def test_migrate_device_ids_skips_ids_already_taken(
+    hass: HomeAssistant, cloud: CloudMock
+) -> None:
+    entry = _v2_entry()
+    entry.add_to_hass(hass)
+
+    device_registry = dr.async_get(hass)
+    entity_registry = er.async_get(hass)
+    old_device = device_registry.async_get_or_create(
+        config_entry_id=entry.entry_id, identifiers={(DOMAIN, "101")}
+    )
+    device_registry.async_get_or_create(
+        config_entry_id=entry.entry_id, identifiers={(DOMAIN, SALA_KEY)}
+    )
+    for unique_id, object_id in (("101", "sala_old"), (SALA_KEY, "sala")):
+        entity_registry.async_get_or_create(
+            "cover",
+            DOMAIN,
+            unique_id,
+            config_entry=entry,
+            suggested_object_id=object_id,
+        )
+
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    assert entry.state is ConfigEntryState.LOADED
+    assert entity_registry.async_get("cover.sala_old").unique_id == "101"
+    assert entity_registry.async_get("cover.sala").unique_id == SALA_KEY
+    assert device_registry.async_get(old_device.id).identifiers == {(DOMAIN, "101")}
+
+
 async def test_remove_stale_device(
     hass: HomeAssistant,
     hass_ws_client: WebSocketGenerator,
@@ -145,7 +261,7 @@ async def test_remove_stale_device(
 ) -> None:
     assert await async_setup_component(hass, "config", {})
     device_registry = dr.async_get(hass)
-    device = device_registry.async_get_device(identifiers={(DOMAIN, "101")})
+    device = device_registry.async_get_device(identifiers={(DOMAIN, SALA_KEY)})
     assert device is not None
 
     client = await hass_ws_client(hass)
@@ -170,4 +286,4 @@ async def test_remove_stale_device(
     )
     response = await client.receive_json()
     assert response["success"]
-    assert device_registry.async_get_device(identifiers={(DOMAIN, "101")}) is None
+    assert device_registry.async_get_device(identifiers={(DOMAIN, SALA_KEY)}) is None

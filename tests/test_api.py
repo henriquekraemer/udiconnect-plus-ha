@@ -20,6 +20,7 @@ from custom_components.udiconnect_plus.api import (
 
 from .conftest import (
     LOGIN_URL,
+    SALA_KEY,
     SET_POSITION_URL,
     SYNC_URL,
     TEST_EMAIL,
@@ -37,9 +38,10 @@ def _client(hass: HomeAssistant) -> UdiconnectClient:
 
 def test_parse_devices_happy_path(sync_payload) -> None:
     devices = parse_devices(sync_payload)
-    assert set(devices) == {"101", "102", "103"}
+    assert set(devices) == {SALA_KEY, "102", "103"}
 
-    sala = devices["101"]
+    sala = devices[SALA_KEY]
+    assert sala.device_id == "101"
     assert sala.name == "Persiana Sala"
     assert sala.home_id == "71900"
     assert sala.home_name == "Casa"
@@ -53,7 +55,8 @@ def test_parse_devices_happy_path(sync_payload) -> None:
     assert sala.low_battery is False
     assert sala.is_cover
 
-    quarto = devices["102"]
+    quarto = devices["102"]  # no deviceUS, keyed by deviceId
+    assert quarto.unique_id == "102"
     assert quarto.position == 0  # string "0" is accepted
     assert quarto.mac_address is None
     assert quarto.is_online is False
@@ -82,7 +85,7 @@ def test_parse_devices_happy_path(sync_payload) -> None:
 )
 def test_parse_devices_position_values(sync_payload, state, expected) -> None:
     sync_payload["account"]["homeList"][0]["deviceList"][0]["state"] = state
-    assert parse_devices(sync_payload)["101"].position == expected
+    assert parse_devices(sync_payload)[SALA_KEY].position == expected
 
 
 def test_parse_devices_defaults_when_flags_missing(sync_payload) -> None:
@@ -99,7 +102,7 @@ def test_parse_devices_defaults_when_flags_missing(sync_payload) -> None:
         "deviceParameters",
     ):
         item.pop(key)
-    device = parse_devices(sync_payload)["101"]
+    device = parse_devices(sync_payload)[SALA_KEY]
     assert device.is_online is True
     assert device.is_calibrating is False
     assert device.low_battery is False
@@ -129,7 +132,25 @@ def test_parse_devices_cover_detection(
     item = sync_payload["account"]["homeList"][0]["deviceList"][0]
     item["controllerType"] = controller_type
     item["category"] = category
-    assert parse_devices(sync_payload)["101"].is_cover is expected
+    assert parse_devices(sync_payload)[SALA_KEY].is_cover is expected
+
+
+@pytest.mark.parametrize(
+    ("device_us", "expected"),
+    [
+        (
+            "AAAAAAAA-0000-4000-8000-000000000101",
+            "aaaaaaaa-0000-4000-8000-000000000101",
+        ),
+        ("", "101"),
+        (None, "101"),
+    ],
+)
+def test_parse_devices_unique_id(sync_payload, device_us, expected) -> None:
+    sync_payload["account"]["homeList"][0]["deviceList"][0]["deviceUS"] = device_us
+    device = parse_devices(sync_payload)[expected]
+    assert device.unique_id == expected
+    assert device.device_id == "101"
 
 
 def test_parse_devices_rejects_error_status(sync_payload) -> None:
@@ -147,7 +168,7 @@ def test_parse_devices_maintenance_mode(sync_payload) -> None:
 def test_parse_devices_tolerates_home_without_device_list(sync_payload) -> None:
     del sync_payload["account"]["homeList"][1]["deviceList"]
     devices = parse_devices(sync_payload)
-    assert set(devices) == {"101", "102"}
+    assert set(devices) == {SALA_KEY, "102"}
 
 
 def test_parse_devices_skips_items_without_id(sync_payload) -> None:
@@ -183,7 +204,7 @@ async def test_login_and_get_devices(hass: HomeAssistant, cloud: CloudMock) -> N
 
     devices = await client.async_get_devices()  # logs in on demand
     assert client.is_authenticated
-    assert set(devices) == {"101", "102", "103"}
+    assert set(devices) == {SALA_KEY, "102", "103"}
 
     login_calls = cloud.calls_to(LOGIN_URL)
     assert len(login_calls) == 1
@@ -263,7 +284,7 @@ async def test_expired_token_triggers_relogin(
     cloud.login_body = {"accessToken": "token-2"}
     devices = await client.async_get_devices()
 
-    assert set(devices) == {"101", "102", "103"}
+    assert set(devices) == {SALA_KEY, "102", "103"}
     assert len(cloud.calls_to(LOGIN_URL)) == 2
     assert cloud.calls_to(SYNC_URL)[-1][3]["access-token"] == "token-2"
 
