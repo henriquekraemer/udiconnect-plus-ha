@@ -16,7 +16,7 @@ from pytest_homeassistant_custom_component.common import (
 
 from custom_components.udiconnect_plus.const import DEFAULT_SCAN_INTERVAL
 
-from .conftest import CloudMock
+from .conftest import SALA_KEY, CloudMock
 
 
 async def test_update_entities(
@@ -35,9 +35,8 @@ async def test_update_entities(
     assert quarto.attributes[ATTR_LATEST_VERSION] == "2.1.3.0"
 
     registry = er.async_get(hass)
-    assert (
-        registry.async_get("update.persiana_sala_firmware").unique_id == "101_firmware"
-    )
+    firmware = registry.async_get("update.persiana_sala_firmware")
+    assert firmware.unique_id == f"{SALA_KEY}_firmware"
 
 
 async def test_update_falls_back_to_flag(

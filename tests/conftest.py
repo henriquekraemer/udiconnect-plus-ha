@@ -35,6 +35,10 @@ TEST_UUID = "11111111-2222-3333-4444-555555555555"
 _FIXTURES = pathlib.Path(__file__).parent / "fixtures"
 
 
+# deviceUS of device 101, the only one in the fixture that has it
+SALA_KEY = "aaaaaaaa-0000-4000-8000-000000000101"
+
+
 @pytest.fixture(autouse=True)
 def auto_enable_custom_integrations(enable_custom_integrations: None) -> None:
     """Enable custom integrations."""
@@ -53,7 +57,7 @@ def mock_config_entry() -> MockConfigEntry:
         domain=DOMAIN,
         title=TEST_EMAIL,
         unique_id=TEST_EMAIL,
-        version=2,
+        version=3,
         minor_version=1,
         data={
             CONF_EMAIL: TEST_EMAIL,

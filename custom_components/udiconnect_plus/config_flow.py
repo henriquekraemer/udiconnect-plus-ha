@@ -80,7 +80,7 @@ async def _async_validate_credentials(
 class UdiconnectConfigFlow(ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Udiconnect Plus."""
 
-    VERSION = 2
+    VERSION = 3
     MINOR_VERSION = 1
 
     async def async_step_user(

@@ -36,3 +36,5 @@ async def test_config_entry_diagnostics(
     assert devices["101"]["raw"]["deviceParameters"]["ssid"] == REDACTED
     assert devices["101"]["raw"]["deviceParameters"]["physicalAddress"] == REDACTED
     assert devices["101"]["mac_address"] == REDACTED
+    assert devices["101"]["unique_id"] == REDACTED
+    assert devices["101"]["raw"]["deviceUS"] == REDACTED

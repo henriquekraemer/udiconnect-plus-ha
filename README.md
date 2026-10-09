@@ -115,6 +115,13 @@ Entities show up as *unavailable* when the cloud reports the device offline or t
 poll failed. The cloud has periodic hiccups (503, connection reset, timeouts); the
 integration recovers on the next successful poll.
 
+If every entity of a device shows up twice, one working and one permanently
+unavailable, the cloud gave the device a new `deviceId` while version 1.0.2 or older
+was installed. Later versions do not create the second set, but they cannot merge the
+one that already exists: delete the unavailable entities (Settings → Devices &
+services → Entities) and, if automations or dashboards use the original entity ids,
+rename the remaining entities back to them.
+
 ## API notes
 
 The cloud is the Yale Connect platform (ASSA ABLOY) with the Udinese brand tenant.
@@ -124,7 +131,7 @@ Everything below comes from observing the Android app.
 - `POST /Account/Login` → `accessToken`, sent back as the `access-token` header
 - `POST /App/SyncAccount` → `status.code`, `account.maintenanceMode`,
   `account.homeList[]` (`homeId`, `description`) → `deviceList[]` with `deviceId` (int),
-  `description`, `controllerType` (`Curtain`), `category` (`Blind`),
+  `deviceUS` (GUID), `description`, `controllerType` (`Curtain`), `category` (`Blind`),
   `deviceModelDescription` (e.g. `UDIN-4205`), `currentFirmwareVersion`,
   `lastestFirmwareVersion` (sic), `state` (position 0-100), `isOnline`, `isCalibrating`,
   `lowBattery`, `newFirmwareAvailable`, `deviceParameters.physicalAddress` (MAC)
@@ -133,6 +140,10 @@ Everything below comes from observing the Android app.
     `position`; when it is missing the cloud uses 0
   - `{"action": "CurtainStop", "deviceId": 123}`
   - response: `{"result": true|false}`
+- `deviceId` is what commands take, but the cloud can assign a new one to a device
+  that is already registered. `deviceUS` stays the same, so it is what identifies the
+  device in Home Assistant; `deviceId` is read from the latest poll when a command is
+  sent.
 
 Observed on a UDIN-4205: commands are acknowledged in about a second; `state` keeps the
 old value until the motor arrives (full travel ~19 s) and then jumps to the new position,

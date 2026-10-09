@@ -24,14 +24,14 @@ async def async_setup_entry(
 
     @callback
     def _async_add_new_entities() -> None:
-        new_ids = [
-            device_id for device_id in coordinator.data if device_id not in known
+        new_keys = [
+            device_key for device_key in coordinator.data if device_key not in known
         ]
-        if not new_ids:
+        if not new_keys:
             return
-        known.update(new_ids)
+        known.update(new_keys)
         async_add_entities(
-            UdiconnectFirmwareUpdate(coordinator, device_id) for device_id in new_ids
+            UdiconnectFirmwareUpdate(coordinator, device_key) for device_key in new_keys
         )
 
     _async_add_new_entities()
@@ -45,10 +45,10 @@ class UdiconnectFirmwareUpdate(UdiconnectEntity, UpdateEntity):
     _attr_entity_category = EntityCategory.DIAGNOSTIC
     _attr_translation_key = "firmware"
 
-    def __init__(self, coordinator: UdiconnectCoordinator, device_id: str) -> None:
+    def __init__(self, coordinator: UdiconnectCoordinator, device_key: str) -> None:
         """Initialize the update entity."""
-        super().__init__(coordinator, device_id)
-        self._attr_unique_id = f"{device_id}_firmware"
+        super().__init__(coordinator, device_key)
+        self._attr_unique_id = f"{device_key}_firmware"
 
     @property
     def installed_version(self) -> str | None:

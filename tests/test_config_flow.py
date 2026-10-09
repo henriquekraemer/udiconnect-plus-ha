@@ -40,7 +40,7 @@ async def test_user_flow_creates_entry(hass: HomeAssistant, cloud: CloudMock) ->
     assert entry.data[CONF_EMAIL] == "User@Example.com"
     assert entry.data[CONF_PASSWORD] == TEST_PASSWORD
     assert len(entry.data[CONF_DEVICE_UUID]) == 36
-    assert entry.version == 2
+    assert entry.version == 3
 
     assert (
         cloud.calls_to(LOGIN_URL)[0][2]["mobileInformation"]["UUID"]

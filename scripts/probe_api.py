@@ -6,8 +6,8 @@ account without running Home Assistant. Personal data is redacted.
     cp .env.example .env        # fill in UDI_EMAIL / UDI_PASSWORD
     python3 scripts/probe_api.py
     python3 scripts/probe_api.py --raw payload.json
-    python3 scripts/probe_api.py --set 64207 50     # moves the curtain!
-    python3 scripts/probe_api.py --stop 64207
+    python3 scripts/probe_api.py --set 12345 50     # moves the curtain!
+    python3 scripts/probe_api.py --stop 12345
 
 Environment variables override the .env file. Requires aiohttp only.
 """

@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Every entity showing up twice, with the original set left unavailable, after the
+  cloud assigned a new `deviceId` to a device. Devices and entities are now identified
+  by `deviceUS`, which does not change, and the existing ones are migrated on the first
+  start. Duplicates created before this update are not merged: delete the unavailable
+  entities and rename the remaining ones if automations or dashboards use the original
+  entity ids. ([#12](https://github.com/henriquekraemer/udiconnect-plus-ha/issues/12))
+
+### Changed
+
+- Config entries move to version 3. Going back to 1.0.2 or older requires removing the
+  integration and adding it again.
+
 ## [1.0.2] - 2026-08-23
 
 ### Added

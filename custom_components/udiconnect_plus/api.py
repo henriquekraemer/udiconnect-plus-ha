@@ -52,6 +52,9 @@ class UdiconnectApiError(UdiconnectError):
 class UdiDevice:
     """Device as reported by SyncAccount."""
 
+    # deviceUS, or device_id when the cloud does not send one. The cloud
+    # renumbers deviceId, so this is what identifies the device.
+    unique_id: str
     device_id: str
     name: str
     home_id: str | None
@@ -137,7 +140,9 @@ def _parse_device(
     parameters = item.get("deviceParameters")
     if not isinstance(parameters, dict):
         parameters = {}
+    device_us = _as_str(item.get("deviceUS"))
     return UdiDevice(
+        unique_id=device_us.lower() if device_us else device_id,
         device_id=device_id,
         name=_as_str(item.get("description")) or f"Udiconnect {device_id}",
         home_id=home_id,
@@ -186,7 +191,7 @@ def _home_list(payload: Any) -> list[Any]:
 
 
 def parse_devices(payload: Any) -> dict[str, UdiDevice]:
-    """Parse a SyncAccount payload into devices keyed by device id.
+    """Parse a SyncAccount payload into devices keyed by unique id.
 
     Raises UdiconnectApiError on a malformed payload. The cloud occasionally
     answers 200 with an incomplete body; that must not look like "no devices".
@@ -209,7 +214,7 @@ def parse_devices(payload: Any) -> dict[str, UdiDevice]:
                 continue
             device = _parse_device(item, home_id, home_name)
             if device is not None:
-                devices[device.device_id] = device
+                devices[device.unique_id] = device
     return devices
 
 
@@ -343,7 +348,7 @@ class UdiconnectClient:
         return await self._async_request(_SYNC_ACCOUNT_PATH, {})
 
     async def async_get_devices(self) -> dict[str, UdiDevice]:
-        """Return all devices keyed by device id."""
+        """Return all devices keyed by unique id."""
         return parse_devices(await self.async_sync_account())
 
     async def async_set_position(self, device_id: str, position: int) -> None:

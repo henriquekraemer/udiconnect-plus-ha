@@ -74,8 +74,7 @@ class UdiconnectCoordinator(DataUpdateCoordinator[dict[str, UdiDevice]]):
             ) from err
 
         if self.data is not None:
-            for device_id in devices.keys() - self.data.keys():
-                _LOGGER.info(
-                    "New device found: %s (%s)", devices[device_id].name, device_id
-                )
+            for unique_id in devices.keys() - self.data.keys():
+                device = devices[unique_id]
+                _LOGGER.info("New device found: %s (%s)", device.name, device.device_id)
         return devices
