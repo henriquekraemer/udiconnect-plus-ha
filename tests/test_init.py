@@ -45,7 +45,7 @@ async def test_setup_and_unload(
     assert device.manufacturer == "Udinese"
     assert device.model == "UDIN-4205"
     assert device.sw_version == "2.1.3.0"
-    assert device.connections == {(dr.CONNECTION_NETWORK_MAC, "10:b4:1d:b6:31:70")}
+    assert device.connections == {(dr.CONNECTION_NETWORK_MAC, "aa:bb:cc:dd:ee:01")}
 
     assert await hass.config_entries.async_unload(mock_config_entry.entry_id)
     await hass.async_block_till_done()

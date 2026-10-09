@@ -65,7 +65,7 @@ async def test_initial_state(hass: HomeAssistant, setup_entry: MockConfigEntry) 
         sala.attributes["supported_features"] == 15
     )  # open, close, set position, stop
     assert sala.attributes["device_id"] == "101"
-    assert sala.attributes["home_id"] == "71900"
+    assert sala.attributes["home_id"] == "1001"
     assert sala.attributes["home_name"] == "Casa"
     assert sala.attributes["category"] == "Blind"
     assert sala.attributes["is_calibrating"] is False

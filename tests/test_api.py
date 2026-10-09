@@ -43,13 +43,13 @@ def test_parse_devices_happy_path(sync_payload) -> None:
     sala = devices[SALA_KEY]
     assert sala.device_id == "101"
     assert sala.name == "Persiana Sala"
-    assert sala.home_id == "71900"
+    assert sala.home_id == "1001"
     assert sala.home_name == "Casa"
     assert sala.model == "UDIN-4205"
     assert sala.controller_type == "Curtain"
     assert sala.firmware_version == "2.1.3.0"
     assert sala.latest_firmware_version == "2.1.3.0"
-    assert sala.mac_address == "10:b4:1d:b6:31:70"
+    assert sala.mac_address == "aa:bb:cc:dd:ee:01"
     assert sala.position == 100
     assert sala.is_online is True
     assert sala.low_battery is False
@@ -138,10 +138,7 @@ def test_parse_devices_cover_detection(
 @pytest.mark.parametrize(
     ("device_us", "expected"),
     [
-        (
-            "AAAAAAAA-0000-4000-8000-000000000101",
-            "aaaaaaaa-0000-4000-8000-000000000101",
-        ),
+        (SALA_KEY.upper(), SALA_KEY),
         ("", "101"),
         (None, "101"),
     ],

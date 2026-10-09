@@ -35,14 +35,8 @@ TEST_UUID = "11111111-2222-3333-4444-555555555555"
 _FIXTURES = pathlib.Path(__file__).parent / "fixtures"
 
 
-def _load_sync_payload() -> dict[str, Any]:
-    return json.loads((_FIXTURES / "sync_account.json").read_text())
-
-
-# Unique id of device 101, the only one in the fixture with a deviceUS
-SALA_KEY: str = _load_sync_payload()["account"]["homeList"][0]["deviceList"][0][
-    "deviceUS"
-]
+# deviceUS of device 101, the only one in the fixture that has it
+SALA_KEY = "aaaaaaaa-0000-4000-8000-000000000101"
 
 
 @pytest.fixture(autouse=True)
@@ -53,7 +47,7 @@ def auto_enable_custom_integrations(enable_custom_integrations: None) -> None:
 @pytest.fixture
 def sync_payload() -> dict[str, Any]:
     """Return the SyncAccount fixture payload."""
-    return _load_sync_payload()
+    return json.loads((_FIXTURES / "sync_account.json").read_text())
 
 
 @pytest.fixture
