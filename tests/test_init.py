@@ -221,6 +221,47 @@ async def test_migrate_device_id_registry_entries(
     assert len(devices) == 3
 
 
+async def test_migrate_device_that_is_already_duplicated(
+    hass: HomeAssistant, cloud: CloudMock
+) -> None:
+    # What a renumbering leaves behind on 1.0.2: the old and the new id on the
+    # same device, each with its own entities.
+    entry = _v2_entry()
+    entry.add_to_hass(hass)
+
+    device_registry = dr.async_get(hass)
+    entity_registry = er.async_get(hass)
+    device = device_registry.async_get_or_create(
+        config_entry_id=entry.entry_id,
+        identifiers={(DOMAIN, "90001"), (DOMAIN, "101")},
+        connections={(dr.CONNECTION_NETWORK_MAC, "aa:bb:cc:dd:ee:01")},
+    )
+    for unique_id, object_id in (("90001", "sala"), ("101", "sala_2")):
+        entity_registry.async_get_or_create(
+            "cover",
+            DOMAIN,
+            unique_id,
+            config_entry=entry,
+            device_id=device.id,
+            suggested_object_id=object_id,
+        )
+
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    assert entity_registry.async_get("cover.sala").unique_id == "90001"
+    assert entity_registry.async_get("cover.sala_2").unique_id == SALA_KEY
+    assert hass.states.get("cover.sala_2").state == "open"
+    assert device_registry.async_get(device.id).identifiers == {
+        (DOMAIN, "90001"),
+        (DOMAIN, SALA_KEY),
+    }
+    devices = dr.async_entries_for_config_entry(device_registry, entry.entry_id)
+    assert len(devices) == 3
+    entries = er.async_entries_for_config_entry(entity_registry, entry.entry_id)
+    assert len([e for e in entries if e.domain == "cover"]) == 3  # plus the quarto
+
+
 async def test_migrate_device_ids_skips_ids_already_taken(
     hass: HomeAssistant, cloud: CloudMock
 ) -> None:
