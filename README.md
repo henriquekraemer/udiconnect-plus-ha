@@ -1,6 +1,6 @@
 # Udiconnect Plus for Home Assistant
 
-[![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://hacs.xyz)
+[![hacs_badge](https://img.shields.io/badge/HACS-Default-41BDF5.svg)](https://hacs.xyz)
 [![Validate](https://github.com/henriquekraemer/udiconnect-plus-ha/actions/workflows/validate.yml/badge.svg)](https://github.com/henriquekraemer/udiconnect-plus-ha/actions/workflows/validate.yml)
 
 Unofficial Home Assistant integration for Udinese blind and curtain motors that use the
@@ -50,19 +50,21 @@ tried: open, close, stop, a position in between, and whether the sensors make se
 
 ### HACS
 
-The integration is waiting for inclusion in the HACS default store
-([hacs/default#10252](https://github.com/hacs/default/pull/10252)). Until then it has to be
-added as a custom repository:
+[![Open your Home Assistant instance and open this repository in HACS.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=henriquekraemer&repository=udiconnect-plus-ha&category=integration)
 
-1. HACS → three-dot menu → **Custom repositories**
-2. Repository `https://github.com/henriquekraemer/udiconnect-plus-ha`, category **Integration**
-3. Search for **Udiconnect Plus**, download it and restart Home Assistant
+1. HACS → search for **Udiconnect Plus**, or use the button above
+2. Download it and restart Home Assistant
+
+Installs made earlier through the custom repository keep working and keep getting
+updates; there is nothing to change.
 
 ### Manual
 
 Copy `custom_components/udiconnect_plus` into `<config>/custom_components/` and restart.
 
 ## Configuration
+
+[![Open your Home Assistant instance and start setting up Udiconnect Plus.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=udiconnect_plus)
 
 Settings → Devices & services → Add integration → **Udiconnect Plus**, then enter the
 e-mail and password of your Udiconnect Plus account.
@@ -94,8 +96,9 @@ device page.
 
 ### Coming from the original integration
 
-Remove the old integration in HACS, install this one and restart. The config entry and
-the `cover.*` entities are migrated in place, keeping entity ids and history.
+Remove the old integration and its custom repository in HACS, install this one and
+restart. The config entry and the `cover.*` entities are migrated in place, keeping
+entity ids and history.
 
 ## Troubleshooting
 
