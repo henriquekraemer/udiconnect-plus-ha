@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- The integration is in the HACS default store; the README no longer asks to add it as a
+  custom repository.
+
 ## [1.0.3] - 2026-10-09
 
 ### Fixed
