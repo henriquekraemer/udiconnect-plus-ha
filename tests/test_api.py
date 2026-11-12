@@ -81,11 +81,49 @@ def test_parse_devices_happy_path(sync_payload) -> None:
         ("", None),
         ("abc", None),
         (True, None),
+        (255, None),
+        ("255", None),
     ],
 )
 def test_parse_devices_position_values(sync_payload, state, expected) -> None:
-    sync_payload["account"]["homeList"][0]["deviceList"][0]["state"] = state
+    item = sync_payload["account"]["homeList"][0]["deviceList"][0]
+    item["state"] = state
+    item["deviceParameters"].pop("state")
     assert parse_devices(sync_payload)[SALA_KEY].position == expected
+
+
+@pytest.mark.parametrize("state", [None, "", "abc"])
+def test_parse_devices_position_from_device_parameters(sync_payload, state) -> None:
+    item = sync_payload["account"]["homeList"][0]["deviceList"][0]
+    item["state"] = state
+    item["deviceParameters"]["state"] = "40"
+    assert parse_devices(sync_payload)[SALA_KEY].position == 40
+
+
+def test_parse_devices_top_level_state_wins(sync_payload) -> None:
+    item = sync_payload["account"]["homeList"][0]["deviceList"][0]
+    item["state"] = 60
+    item["deviceParameters"]["state"] = "40"
+    assert parse_devices(sync_payload)[SALA_KEY].position == 60
+
+
+@pytest.mark.parametrize(
+    ("top_level", "parameters"),
+    [(255, "255"), ("255", None), (None, "255")],
+)
+def test_parse_devices_pending_configuration(
+    sync_payload, top_level, parameters
+) -> None:
+    item = sync_payload["account"]["homeList"][0]["deviceList"][0]
+    item["state"] = top_level
+    item["deviceParameters"]["state"] = parameters
+    device = parse_devices(sync_payload)[SALA_KEY]
+    assert device.needs_configuration is True
+    assert device.position is None
+
+
+def test_parse_devices_configured(sync_payload) -> None:
+    assert parse_devices(sync_payload)[SALA_KEY].needs_configuration is False
 
 
 def test_parse_devices_defaults_when_flags_missing(sync_payload) -> None:
@@ -118,7 +156,10 @@ def test_parse_devices_defaults_when_flags_missing(sync_payload) -> None:
     [
         ("Curtain", "Blind", True),
         ("Curtain", None, True),
-        ("DoorLock", "Blind", False),
+        # the app treats Curtain and Blind categories as curtains, whatever the controller
+        ("DoorLock", "Blind", True),
+        ("XTR", "Curtain", True),
+        ("DoorLock", "DoorLock", False),
         (None, "Blind", True),
         (None, "DoorLock", False),
         (None, "Fechadura Digital", False),

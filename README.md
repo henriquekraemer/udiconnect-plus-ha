@@ -130,7 +130,7 @@ rename the remaining entities back to them.
 The cloud is the Yale Connect platform (ASSA ABLOY) with the Udinese brand tenant.
 Everything below comes from observing the Android app.
 
-- Base URL: `https://AA-Brands.yaleconnect-services.com/api/YaleConnect`
+- Base URL: `https://api.connectservices.assaabloy.com/api/YaleConnect`
 - `POST /Account/Login` → `accessToken`, sent back as the `access-token` header
 - `POST /App/SyncAccount` → `status.code`, `account.maintenanceMode`,
   `account.homeList[]` (`homeId`, `description`) → `deviceList[]` with `deviceId` (int),
