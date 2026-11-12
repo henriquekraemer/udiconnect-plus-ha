@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Every device showing as offline and every cover command being refused since
+  2026-11-11. The cloud API moved to `https://api.connectservices.assaabloy.com`; the old
+  host still answers but serves a frozen copy of the account. The official app is
+  redirected by a remote flag, the integration had the old host hardcoded.
+
 ## [1.0.4] - 2026-10-23
 
 ### Changed
