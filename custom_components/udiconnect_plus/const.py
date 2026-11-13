@@ -5,7 +5,7 @@ from typing import Final
 DOMAIN: Final = "udiconnect_plus"
 MANUFACTURER: Final = "Udinese"
 
-API_BASE_URL: Final = "https://AA-Brands.yaleconnect-services.com/api/YaleConnect"
+API_BASE_URL: Final = "https://api.connectservices.assaabloy.com/api/YaleConnect"
 API_BRAND_PLATFORM_GUID: Final = (
     "883fe30e-6df9-4cc8-954c-f91aa9dadac5.3939e0f2-08e5-4bb1-b3a6-ddb1183666d3"
 )
