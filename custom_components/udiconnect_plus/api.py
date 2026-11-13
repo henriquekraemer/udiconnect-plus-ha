@@ -28,8 +28,13 @@ _CURTAIN_PATH = "/Curtain/SetPositionCurtain"
 COMMAND_RETRIES = 2
 COMMAND_RETRY_DELAY = 1.5
 
+_COVER_CATEGORIES = ("curtain", "blind")
 _COVER_CONTROLLER_TYPES = ("curtain", "blind", "shutter")
 _NON_COVER_CATEGORY_HINTS = ("lock", "fechadura", "camera", "câmera", "gateway", "hub")
+
+# The app shows a curtain with this state as "configure limits": it has no
+# position yet and does not accept commands.
+_PENDING_CONFIGURATION_STATE = 255
 
 
 class UdiconnectError(Exception):
@@ -70,11 +75,15 @@ class UdiDevice:
     is_calibrating: bool
     low_battery: bool
     new_firmware_available: bool
+    needs_configuration: bool = False
     raw: dict[str, Any] = field(default_factory=dict, compare=False, repr=False)
 
     @property
     def is_cover(self) -> bool:
         """Return True if the device should get a cover entity."""
+        # The app decides by category alone.
+        if self.category is not None and self.category.lower() in _COVER_CATEGORIES:
+            return True
         if self.controller_type is not None:
             return self.controller_type.lower() in _COVER_CONTROLLER_TYPES
         if self.category is None:
@@ -105,6 +114,24 @@ def _as_position(value: Any) -> int | None:
     except (TypeError, ValueError):
         return None
     return max(0, min(100, position))
+
+
+def _curtain_state(item: dict[str, Any], parameters: dict[str, Any]) -> Any:
+    # SyncAccount sends the state twice. The app reads deviceParameters.state;
+    # the top-level copy is used first and the other covers its absence.
+    state = item.get("state")
+    if _as_position(state) is not None:
+        return state
+    return parameters.get("state")
+
+
+def _is_pending_configuration(state: Any) -> bool:
+    if state is None or isinstance(state, bool):
+        return False
+    try:
+        return float(state) == _PENDING_CONFIGURATION_STATE
+    except (TypeError, ValueError):
+        return False
 
 
 def _as_str(value: Any) -> str | None:
@@ -141,6 +168,8 @@ def _parse_device(
     if not isinstance(parameters, dict):
         parameters = {}
     device_us = _as_str(item.get("deviceUS"))
+    state = _curtain_state(item, parameters)
+    needs_configuration = _is_pending_configuration(state)
     return UdiDevice(
         unique_id=device_us.lower() if device_us else device_id,
         device_id=device_id,
@@ -155,13 +184,14 @@ def _parse_device(
         latest_firmware_version=_as_str(item.get("lastestFirmwareVersion"))
         or _as_str(item.get("latestFirmwareVersion")),
         mac_address=_as_mac(parameters.get("physicalAddress")),
-        position=_as_position(item.get("state")),
+        position=None if needs_configuration else _as_position(state),
         is_online=_as_bool(item.get("isOnline"), default=True),
         is_calibrating=_as_bool(item.get("isCalibrating"), default=False),
         low_battery=_as_bool(item.get("lowBattery"), default=False),
         new_firmware_available=_as_bool(
             item.get("newFirmwareAvailable"), default=False
         ),
+        needs_configuration=needs_configuration,
         raw=item,
     )
 

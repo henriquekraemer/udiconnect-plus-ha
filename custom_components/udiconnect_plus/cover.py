@@ -102,9 +102,14 @@ class UdiconnectCover(UdiconnectEntity, CoverEntity):
 
     @property
     def available(self) -> bool:
-        """Return True if the device is online."""
+        """Return True if the device is online and has its limits set."""
         device = self.device
-        return super().available and device is not None and device.is_online
+        return (
+            super().available
+            and device is not None
+            and device.is_online
+            and not device.needs_configuration
+        )
 
     @property
     def current_cover_position(self) -> int | None:

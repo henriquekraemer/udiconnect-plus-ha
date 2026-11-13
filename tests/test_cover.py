@@ -295,10 +295,31 @@ async def test_position_unknown(
     setup_entry: MockConfigEntry,
 ) -> None:
     cloud.device("101")["state"] = None
+    cloud.device("101")["deviceParameters"]["state"] = None
     await _advance(hass, freezer, DEFAULT_SCAN_INTERVAL + 1)
     state = hass.states.get(SALA)
     assert state.state == "unknown"
     assert ATTR_CURRENT_POSITION not in state.attributes
+
+
+async def test_unavailable_while_pending_configuration(
+    hass: HomeAssistant,
+    freezer: FrozenDateTimeFactory,
+    cloud: CloudMock,
+    setup_entry: MockConfigEntry,
+) -> None:
+    # 255 means the limits were never set; it must not show up as fully open
+    cloud.device("101")["state"] = 255
+    cloud.device("101")["deviceParameters"]["state"] = "255"
+    await _advance(hass, freezer, DEFAULT_SCAN_INTERVAL + 1)
+    assert hass.states.get(SALA).state == STATE_UNAVAILABLE
+
+    cloud.device("101")["state"] = 30
+    cloud.device("101")["deviceParameters"]["state"] = "30"
+    await _advance(hass, freezer, DEFAULT_SCAN_INTERVAL + 1)
+    state = hass.states.get(SALA)
+    assert state.state == CoverState.OPEN
+    assert state.attributes[ATTR_CURRENT_POSITION] == 30
 
 
 async def test_new_device_is_added_later(

@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- A curtain whose limits were never set showed as fully open. The cloud reports such a
+  curtain with state `255`, which the app shows as "configure"; the cover is now
+  unavailable until the limits are set in the app.
+- Devices with category `Curtain` or `Blind` are always given a cover entity, as in the
+  app, whatever their `controllerType`.
+- The position falls back to `deviceParameters.state`, the field the app reads, when the
+  top-level `state` is missing.
+
+### Changed
+
+- Log in as app version 5.11.11, the current Udiconnect Plus release.
+
 ## [1.0.5] - 2026-11-12
 
 ### Fixed
