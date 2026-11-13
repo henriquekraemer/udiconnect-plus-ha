@@ -19,9 +19,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Talk to the cloud at `api.connectservices.assaabloy.com`, the server the current app
-  uses. The previous server, `AA-Brands.yaleconnect-services.com`, stopped working.
 - Log in as app version 5.11.11, the current Udiconnect Plus release.
+
+## [1.0.5] - 2026-11-12
+
+### Fixed
+
+- Every device showing as offline and every cover command being refused since
+  2026-11-11. The cloud API moved to `https://api.connectservices.assaabloy.com`; the old
+  host still answers but serves a frozen copy of the account. The official app is
+  redirected by a remote flag, the integration had the old host hardcoded.
+  ([#18](https://github.com/henriquekraemer/udiconnect-plus-ha/issues/18))
 
 ## [1.0.4] - 2026-10-23
 
@@ -85,7 +93,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Migration of config entries and entity ids from `rezendeneto/udiconnect-plus-ha`.
 - `scripts/probe_api.py` for inspecting an account without Home Assistant.
 
-[Unreleased]: https://github.com/henriquekraemer/udiconnect-plus-ha/compare/v1.0.4...HEAD
+[Unreleased]: https://github.com/henriquekraemer/udiconnect-plus-ha/compare/v1.0.5...HEAD
+[1.0.5]: https://github.com/henriquekraemer/udiconnect-plus-ha/compare/v1.0.4...v1.0.5
 [1.0.4]: https://github.com/henriquekraemer/udiconnect-plus-ha/compare/v1.0.3...v1.0.4
 [1.0.3]: https://github.com/henriquekraemer/udiconnect-plus-ha/compare/v1.0.2...v1.0.3
 [1.0.2]: https://github.com/henriquekraemer/udiconnect-plus-ha/compare/v1.0.1...v1.0.2
