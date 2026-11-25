@@ -98,11 +98,6 @@ def _async_migrate_device_ids(
             break
 
     device_registry = dr.async_get(hass)
-    taken = {
-        identifier
-        for device_entry in device_registry.devices.values()
-        for identifier in device_entry.identifiers
-    }
     for device_entry in dr.async_entries_for_config_entry(
         device_registry, entry.entry_id
     ):
@@ -110,12 +105,15 @@ def _async_migrate_device_ids(
             (domain, unique_ids.get(value, value) if domain == DOMAIN else value)
             for domain, value in device_entry.identifiers
         }
-        added = identifiers - device_entry.identifiers
-        if added and not added & taken:
+        if not identifiers - device_entry.identifiers:
+            continue
+        try:
             device_registry.async_update_device(
                 device_entry.id, new_identifiers=identifiers
             )
-            taken |= added
+        except dr.DeviceIdentifierCollisionError:
+            # Another device already has the new identifier: keep the old one.
+            continue
 
 
 async def _async_update_listener(

@@ -14,6 +14,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   account. Home Assistant announces that the old call stops working in 2026.12; the
   integration now saves the credentials and reloads the entry itself, which behaves the
   same on every supported Home Assistant version.
+- Deprecation warning on Home Assistant 2026.9+ ("uses `device_registry.devices` as a
+  mapping"), raised while migrating device identifiers. The integration no longer walks
+  the device registry to find taken identifiers: Home Assistant rejects a colliding
+  update and the device keeps its old identifier. The old access stops working in 2027.9.
 
 ## [1.0.5] - 2026-11-12
 
