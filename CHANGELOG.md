@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Deprecation warning on Home Assistant 2026.6+ ("has an update listener and should use
+  it for scheduling a reload"), logged when re-authenticating or reconfiguring the
+  account. Home Assistant announces that the old call stops working in 2026.12; the
+  integration now saves the credentials and reloads the entry itself, which behaves the
+  same on every supported Home Assistant version.
+
 ## [1.0.5] - 2026-11-12
 
 ### Fixed

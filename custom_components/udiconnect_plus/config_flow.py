@@ -140,8 +140,10 @@ class UdiconnectConfigFlow(ConfigFlow, domain=DOMAIN):
                 entry.data[CONF_DEVICE_UUID],
             )
             if error is None:
-                return self.async_update_reload_and_abort(
-                    entry, data_updates={CONF_PASSWORD: user_input[CONF_PASSWORD]}
+                return self._async_save_and_reload(
+                    entry,
+                    "reauth_successful",
+                    data={**entry.data, CONF_PASSWORD: user_input[CONF_PASSWORD]},
                 )
             errors["base"] = error
 
@@ -171,10 +173,12 @@ class UdiconnectConfigFlow(ConfigFlow, domain=DOMAIN):
                 entry.data[CONF_DEVICE_UUID],
             )
             if error is None:
-                return self.async_update_reload_and_abort(
+                return self._async_save_and_reload(
                     entry,
+                    "reconfigure_successful",
                     title=email,
-                    data_updates={
+                    data={
+                        **entry.data,
                         CONF_EMAIL: email,
                         CONF_PASSWORD: user_input[CONF_PASSWORD],
                     },
@@ -189,6 +193,21 @@ class UdiconnectConfigFlow(ConfigFlow, domain=DOMAIN):
             ),
             errors=errors,
         )
+
+    @callback
+    def _async_save_and_reload(
+        self, entry: ConfigEntry, reason: str, **changes: Any
+    ) -> ConfigFlowResult:
+        """Save the new credentials, reload the entry and end the flow.
+
+        Home Assistant's async_update_reload_and_abort stops working in 2026.12
+        for entries that have an update listener. It expects the listener to
+        reload, but ours only applies the polling interval and does not exist
+        while the entry is not loaded, as after a password rejected at startup.
+        """
+        self.hass.config_entries.async_update_entry(entry, **changes)
+        self.hass.config_entries.async_schedule_reload(entry.entry_id)
+        return self.async_abort(reason=reason)
 
     @staticmethod
     @callback

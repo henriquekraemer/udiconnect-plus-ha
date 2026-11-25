@@ -16,7 +16,17 @@ from custom_components.udiconnect_plus.const import (
     DOMAIN,
 )
 
-from .conftest import LOGIN_URL, TEST_EMAIL, TEST_PASSWORD, CloudMock
+from .conftest import (
+    LOGIN_URL,
+    TEST_EMAIL,
+    TEST_PASSWORD,
+    CloudMock,
+    setup_integration,
+)
+
+# Logged by Home Assistant 2026.10+ when a flow reloads an entry through
+# async_update_reload_and_abort while the entry has an update listener.
+RELOAD_DEPRECATION = "has an update listener"
 
 
 async def test_user_flow_creates_entry(hass: HomeAssistant, cloud: CloudMock) -> None:
@@ -110,8 +120,12 @@ async def test_user_flow_aborts_when_account_exists(
 
 
 async def test_reauth_flow(
-    hass: HomeAssistant, cloud: CloudMock, setup_entry: MockConfigEntry
+    hass: HomeAssistant,
+    cloud: CloudMock,
+    setup_entry: MockConfigEntry,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
+    coordinator = setup_entry.runtime_data
     result = await setup_entry.start_reauth_flow(hass)
     assert result["type"] is FlowResultType.FORM
     assert result["step_id"] == "reauth_confirm"
@@ -134,6 +148,29 @@ async def test_reauth_flow(
     assert setup_entry.data[CONF_PASSWORD] == "new-password"
     assert setup_entry.data[CONF_EMAIL] == TEST_EMAIL
     assert setup_entry.state is config_entries.ConfigEntryState.LOADED
+    assert setup_entry.runtime_data is not coordinator
+    assert RELOAD_DEPRECATION not in caplog.text
+
+
+async def test_reauth_flow_loads_entry_that_failed_setup(
+    hass: HomeAssistant, cloud: CloudMock, mock_config_entry: MockConfigEntry
+) -> None:
+    """A rejected password at startup leaves no update listener to reload it."""
+    cloud.login_status = 401
+    assert not await setup_integration(hass, mock_config_entry)
+    assert mock_config_entry.state is config_entries.ConfigEntryState.SETUP_ERROR
+    flows = hass.config_entries.flow.async_progress_by_handler(DOMAIN)
+    assert len(flows) == 1
+
+    cloud.login_status = 200
+    result = await hass.config_entries.flow.async_configure(
+        flows[0]["flow_id"], {CONF_PASSWORD: "new-password"}
+    )
+    await hass.async_block_till_done()
+    assert result["type"] is FlowResultType.ABORT
+    assert result["reason"] == "reauth_successful"
+    assert mock_config_entry.data[CONF_PASSWORD] == "new-password"
+    assert mock_config_entry.state is config_entries.ConfigEntryState.LOADED
 
 
 async def test_options_flow_updates_interval_without_reload(
@@ -157,8 +194,12 @@ async def test_options_flow_updates_interval_without_reload(
 
 
 async def test_reconfigure_flow(
-    hass: HomeAssistant, cloud: CloudMock, setup_entry: MockConfigEntry
+    hass: HomeAssistant,
+    cloud: CloudMock,
+    setup_entry: MockConfigEntry,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
+    coordinator = setup_entry.runtime_data
     result = await setup_entry.start_reconfigure_flow(hass)
     assert result["type"] is FlowResultType.FORM
     assert result["step_id"] == "reconfigure"
@@ -182,6 +223,23 @@ async def test_reconfigure_flow(
     assert setup_entry.data[CONF_PASSWORD] == "new-password"
     assert setup_entry.unique_id == TEST_EMAIL
     assert setup_entry.state is config_entries.ConfigEntryState.LOADED
+    assert setup_entry.runtime_data is not coordinator
+    assert RELOAD_DEPRECATION not in caplog.text
+
+
+async def test_reconfigure_with_same_credentials_still_reloads(
+    hass: HomeAssistant, cloud: CloudMock, setup_entry: MockConfigEntry
+) -> None:
+    coordinator = setup_entry.runtime_data
+    result = await setup_entry.start_reconfigure_flow(hass)
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {CONF_EMAIL: TEST_EMAIL, CONF_PASSWORD: TEST_PASSWORD}
+    )
+    await hass.async_block_till_done()
+    assert result["type"] is FlowResultType.ABORT
+    assert result["reason"] == "reconfigure_successful"
+    assert setup_entry.state is config_entries.ConfigEntryState.LOADED
+    assert setup_entry.runtime_data is not coordinator
 
 
 async def test_reconfigure_rejects_other_account(
