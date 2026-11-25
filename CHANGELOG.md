@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Experimental control over the local network, as an option (**Control mode**, default
+  *Cloud only*, so nothing changes unless it is enabled). The motors announce their
+  position and acknowledge commands over UDP; with a local mode, *stop* and *move to
+  position* go straight to the motor, and a command counts only when the motor
+  acknowledges it. *Local network, cloud if the motor does not confirm* sends the command
+  through the cloud when it does not; *Local network only* reports an error instead. The
+  motor's own position replaces the cloud copy, and the motors keep working if the cloud
+  goes down while Home Assistant is running.
+  Tested on the UDIN-4208 (firmware 1.2.4.0) only.
+
 ### Fixed
 
 - Deprecation warning on Home Assistant 2026.6+ ("has an update listener and should use

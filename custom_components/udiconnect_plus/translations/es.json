@@ -53,9 +53,11 @@
       "init": {
         "title": "Opciones de Udiconnect Plus",
         "data": {
+          "control_mode": "Modo de control",
           "scan_interval": "Intervalo de consulta"
         },
         "data_description": {
+          "control_mode": "Por dónde llegan a los motores los comandos de parar y mover. Los modos locales también escuchan a los motores en la red local para conocer la posición y requieren Home Assistant en la misma red y el mismo dominio de broadcast que los motores. Experimental: probado solo en el UDIN-4208 (firmware 1.2.4.0).",
           "scan_interval": "Cada cuántos segundos consultar a la nube el estado de los dispositivos. Tras un comando, la integración consulta más rápido por sí sola hasta que el motor se detiene."
         }
       }
@@ -91,6 +93,18 @@
     },
     "stop_failed": {
       "message": "No se pudo detener {name}: {error}"
+    },
+    "local_failed": {
+      "message": "{name} no confirmó el comando en la red local"
+    }
+  },
+  "selector": {
+    "control_mode": {
+      "options": {
+        "local_fallback": "Red local, nube si el motor no confirma",
+        "local_only": "Solo red local",
+        "cloud_only": "Solo nube (comportamiento original)"
+      }
     }
   }
 }

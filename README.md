@@ -90,6 +90,37 @@ diagnostic entities.
 every 5 s on its own until the motor reaches the target position, so a longer interval
 only delays changes made from the app, Alexa or a remote.
 
+**Control mode** (experimental, default *Cloud only*, which is how the integration always
+worked). The motors also talk plain UDP on the local network: they broadcast their
+position and acknowledge commands on port 20911 and accept *stop* and *move to position*
+on port 20910. The local modes use that channel:
+
+| Mode | Commands | State |
+|---|---|---|
+| Cloud only | Cloud | Cloud. Nothing is opened locally |
+| Local network, cloud if the motor does not confirm | LAN first; if the motor does not acknowledge within a few seconds, the same command is sent through the cloud | Motor broadcasts, with the cloud as fallback |
+| Local network only | LAN; an error if the motor does not acknowledge | Motor broadcasts, with the cloud as fallback |
+
+A command counts only when the motor acknowledges it, and for a move only when it echoes
+the requested target. Both commands are absolute, so resending one is harmless, and a
+newer command for the same motor replaces one still waiting. With the fallback, a motor
+not heard on the network lately gets the command through the cloud right away. The local
+modes keep working if the cloud goes down while Home Assistant is running; starting up
+still needs the cloud. Changing the mode reloads the integration.
+
+Things to know before enabling it:
+
+- Tested only on the UDIN-4208 (firmware 1.2.4.0). Other models may not accept the same
+  frames. If you try one, please report the model and firmware.
+- Home Assistant must be on the same network and broadcast domain as the motors, and
+  able to receive UDP broadcasts on port 20911 (host networking if it runs in a container).
+- The motors do not authenticate frames on this port: any device on the same network can
+  move them. Keep the motors on a network you trust.
+- The integration sends nothing else to the motors than a read-only discovery broadcast,
+  *stop* and *move to position*.
+- Battery, firmware and online state still come from the cloud, so adding or removing a
+  device still needs it.
+
 To change the password without waiting for a reauthentication prompt, use **Reconfigure**
 on the integration entry. Devices that disappear from the account can be deleted from the
 device page.

@@ -11,10 +11,18 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers import device_registry as dr, entity_registry as er
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.event import async_track_time_interval
 
 from .api import UdiconnectAuthError, UdiconnectClient, UdiconnectError, UdiDevice
-from .const import CONF_DEVICE_UUID, DEFAULT_SCAN_INTERVAL, DOMAIN
+from .const import (
+    CONF_CONTROL_MODE,
+    CONF_DEVICE_UUID,
+    DEFAULT_CONTROL_MODE,
+    DEFAULT_SCAN_INTERVAL,
+    DOMAIN,
+)
 from .coordinator import UdiconnectConfigEntry, UdiconnectCoordinator
+from .local import LOCAL_CHECK_SECONDS
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -57,6 +65,17 @@ async def async_setup_entry(hass: HomeAssistant, entry: UdiconnectConfigEntry) -
     await coordinator.async_config_entry_first_refresh()
     _async_migrate_device_ids(hass, entry, coordinator.data)
     entry.runtime_data = coordinator
+    # Registered before starting, so the sockets close even if setup fails later.
+    entry.async_on_unload(coordinator.local_manager.stop)
+    if coordinator.local_enabled:
+        await coordinator.local_manager.async_start()
+        entry.async_on_unload(
+            async_track_time_interval(
+                hass,
+                coordinator.async_check_local,
+                timedelta(seconds=LOCAL_CHECK_SECONDS),
+            )
+        )
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     entry.async_on_unload(entry.add_update_listener(_async_update_listener))
@@ -121,6 +140,12 @@ async def _async_update_listener(
 ) -> None:
     """Handle options update."""
     coordinator = entry.runtime_data
+    if entry.options.get(CONF_CONTROL_MODE, DEFAULT_CONTROL_MODE) != (
+        coordinator.control_mode
+    ):
+        # The sockets depend on the mode: start over.
+        hass.config_entries.async_schedule_reload(entry.entry_id)
+        return
     scan_interval = entry.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
     if coordinator.update_interval != timedelta(seconds=scan_interval):
         coordinator.update_interval = timedelta(seconds=scan_interval)

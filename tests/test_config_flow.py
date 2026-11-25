@@ -11,9 +11,11 @@ import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.udiconnect_plus.const import (
+    CONF_CONTROL_MODE,
     CONF_DEVICE_UUID,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
+    MODE_CLOUD_ONLY,
 )
 
 from .conftest import (
@@ -188,7 +190,10 @@ async def test_options_flow_updates_interval_without_reload(
     )
     await hass.async_block_till_done()
     assert result["type"] is FlowResultType.CREATE_ENTRY
-    assert setup_entry.options == {CONF_SCAN_INTERVAL: 120}
+    assert setup_entry.options == {
+        CONF_SCAN_INTERVAL: 120,
+        CONF_CONTROL_MODE: MODE_CLOUD_ONLY,
+    }
     assert setup_entry.runtime_data is coordinator
     assert coordinator.update_interval.total_seconds() == 120
 

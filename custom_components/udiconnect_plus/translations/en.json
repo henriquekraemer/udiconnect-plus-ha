@@ -53,9 +53,11 @@
       "init": {
         "title": "Udiconnect Plus options",
         "data": {
+          "control_mode": "Control mode",
           "scan_interval": "Polling interval"
         },
         "data_description": {
+          "control_mode": "How stop and move commands reach the motors. The local modes also listen to the motors on the local network for their position and need Home Assistant on the same network and broadcast domain as the motors. Experimental: only tested on the UDIN-4208 (firmware 1.2.4.0).",
           "scan_interval": "How often to ask the cloud for the state of your devices, in seconds. After a command the integration polls faster on its own until the motor stops."
         }
       }
@@ -91,6 +93,18 @@
     },
     "stop_failed": {
       "message": "Could not stop {name}: {error}"
+    },
+    "local_failed": {
+      "message": "{name} did not confirm the command on the local network"
+    }
+  },
+  "selector": {
+    "control_mode": {
+      "options": {
+        "local_fallback": "Local network, cloud if the motor does not confirm",
+        "local_only": "Local network only",
+        "cloud_only": "Cloud only (original behaviour)"
+      }
     }
   }
 }

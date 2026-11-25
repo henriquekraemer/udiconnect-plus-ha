@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-from datetime import timedelta
+from datetime import datetime, timedelta
 import logging
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.debounce import Debouncer
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
@@ -18,7 +18,8 @@ from .api import (
     UdiconnectConnectionError,
     UdiDevice,
 )
-from .const import DOMAIN
+from .const import CONF_CONTROL_MODE, DEFAULT_CONTROL_MODE, DOMAIN, MODE_CLOUD_ONLY
+from .local import UdiLocalManager
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -28,7 +29,7 @@ type UdiconnectConfigEntry = ConfigEntry[UdiconnectCoordinator]
 
 
 class UdiconnectCoordinator(DataUpdateCoordinator[dict[str, UdiDevice]]):
-    """Fetch device state from the cloud."""
+    """Fetch device state from the cloud and hold the LAN listener."""
 
     config_entry: UdiconnectConfigEntry
 
@@ -51,6 +52,26 @@ class UdiconnectCoordinator(DataUpdateCoordinator[dict[str, UdiDevice]]):
             ),
         )
         self.client = client
+        self.control_mode: str = entry.options.get(
+            CONF_CONTROL_MODE, DEFAULT_CONTROL_MODE
+        )
+        # In cloud-only mode nothing local is opened.
+        self.local_enabled = self.control_mode != MODE_CLOUD_ONLY
+        # The LAN state lives in the local manager, not in self.data: a cloud
+        # poll would overwrite it, and async_set_updated_data would mark a
+        # failing cloud as healthy. Entities read both and pick.
+        self.local_manager = UdiLocalManager(self._async_local_changed)
+
+    @callback
+    def _async_local_changed(self) -> None:
+        """Refresh the entities when something changes on the LAN."""
+        if self.data is not None:
+            self.async_update_listeners()
+
+    @callback
+    def async_check_local(self, _now: datetime) -> None:
+        """Look for modules that went quiet: nothing else reports it."""
+        self.local_manager.expire()
 
     async def _async_update_data(self) -> dict[str, UdiDevice]:
         try:
@@ -77,4 +98,6 @@ class UdiconnectCoordinator(DataUpdateCoordinator[dict[str, UdiDevice]]):
             for unique_id in devices.keys() - self.data.keys():
                 device = devices[unique_id]
                 _LOGGER.info("New device found: %s (%s)", device.name, device.device_id)
+
+        self.local_manager.set_macs(device.mac_address for device in devices.values())
         return devices

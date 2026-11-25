@@ -20,6 +20,9 @@ from homeassistant.helpers.selector import (
     NumberSelector,
     NumberSelectorConfig,
     NumberSelectorMode,
+    SelectSelector,
+    SelectSelectorConfig,
+    SelectSelectorMode,
     TextSelector,
     TextSelectorConfig,
     TextSelectorType,
@@ -33,7 +36,10 @@ from .api import (
     UdiconnectError,
 )
 from .const import (
+    CONF_CONTROL_MODE,
     CONF_DEVICE_UUID,
+    CONTROL_MODES,
+    DEFAULT_CONTROL_MODE,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
     MAX_SCAN_INTERVAL,
@@ -225,11 +231,26 @@ class UdiconnectOptionsFlow(OptionsFlow):
         """Manage the options."""
         if user_input is not None:
             return self.async_create_entry(
-                data={CONF_SCAN_INTERVAL: int(user_input[CONF_SCAN_INTERVAL])}
+                data={
+                    CONF_SCAN_INTERVAL: int(user_input[CONF_SCAN_INTERVAL]),
+                    CONF_CONTROL_MODE: user_input[CONF_CONTROL_MODE],
+                }
             )
 
         schema = vol.Schema(
             {
+                vol.Required(
+                    CONF_CONTROL_MODE,
+                    default=self.config_entry.options.get(
+                        CONF_CONTROL_MODE, DEFAULT_CONTROL_MODE
+                    ),
+                ): SelectSelector(
+                    SelectSelectorConfig(
+                        options=CONTROL_MODES,
+                        mode=SelectSelectorMode.LIST,
+                        translation_key=CONF_CONTROL_MODE,
+                    )
+                ),
                 vol.Required(
                     CONF_SCAN_INTERVAL,
                     default=self.config_entry.options.get(
@@ -243,7 +264,7 @@ class UdiconnectOptionsFlow(OptionsFlow):
                         mode=NumberSelectorMode.BOX,
                         unit_of_measurement="s",
                     )
-                )
+                ),
             }
         )
         return self.async_show_form(step_id="init", data_schema=schema)
